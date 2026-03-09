@@ -1,17 +1,21 @@
 {% extends 'base.html' %}
 
-{% block title %}Mi perfil de vendedor{% endblock title %}
+{% block title %}Mi perfil{% endblock title %}
 
 {% block content %}
 <section class="form-card">
-    <h2>Mi perfil de vendedor</h2>
-    <p class="form-help">Aqui puedes editar tu nombre, telefono, foto de perfil y portada.</p>
+    <h2>Mi perfil</h2>
+    <p class="form-help">Edita tu informacion personal, foto y descripcion.</p>
     <p class="form-help"><strong>ID:</strong> {{ user.id }} | <strong>Usuario:</strong> {{ user.username }}</p>
+
+    {% if perfil.foto_perfil %}
+    <img src="{{ perfil.foto_perfil.url }}" alt="Foto de perfil" class="profile-avatar">
+    {% endif %}
 
     <form method="post" enctype="multipart/form-data" class="producto-form">
         {% csrf_token %}
 
-        <h3>Cuenta</h3>
+        <h3>Datos de cuenta</h3>
         {% for field in user_form %}
         <div class="field-group">
             <label for="{{ field.id_for_label }}">{{ field.label }}</label>
@@ -22,11 +26,14 @@
         </div>
         {% endfor %}
 
-        <h3>Perfil publico</h3>
+        <h3>Mi perfil publico</h3>
         {% for field in perfil_form %}
         <div class="field-group">
             <label for="{{ field.id_for_label }}">{{ field.label }}</label>
             {{ field }}
+            {% if field.help_text %}
+            <small class="help">{{ field.help_text }}</small>
+            {% endif %}
             {% if field.errors %}
             <small class="error">{{ field.errors|striptags }}</small>
             {% endif %}
@@ -34,9 +41,15 @@
         {% endfor %}
 
         <div class="form-actions">
-            <a href="{% url 'productos:tiendas_gestion' %}" class="btn-secundario-link">Volver</a>
+            <a href="{% url 'productos:home' %}" class="btn-secundario-link">Volver</a>
             <button type="submit" class="btn-whatsapp">Guardar cambios</button>
         </div>
     </form>
+</section>
+
+<section class="form-card">
+    <h3>Zona de peligro</h3>
+    <p class="error">Si eliminas tu cuenta, no podras recuperarla.</p>
+    <a href="{% url 'usuarios:eliminar_mi_cuenta' %}" class="btn-delete-link">Eliminar cuenta</a>
 </section>
 {% endblock content %}

@@ -17,6 +17,9 @@
             {% if field.help_text %}
             <small class="help">{{ field.help_text }}</small>
             {% endif %}
+            {% if field.name == 'imagen' or field.name == 'imagen_secundaria' or field.name == 'imagen_detalle' %}
+            <small class="help">Formatos permitidos: JPG, PNG o WEBP. Tamano maximo: 3MB.</small>
+            {% endif %}
             {% if field.errors %}
             <small class="error">{{ field.errors|striptags }}</small>
             {% endif %}

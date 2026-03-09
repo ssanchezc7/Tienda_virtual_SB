@@ -24,6 +24,25 @@ const showToast = (message, type = "info") => {
     }, 2200);
 };
 
+const setCartFabCount = (items) => {
+    const countEl = document.getElementById("cart-fab-count");
+    if (!countEl) {
+        return;
+    }
+    const totalItems = items.reduce((acc, item) => acc + (Number(item.cantidad) || 0), 0);
+    countEl.textContent = String(totalItems);
+};
+
+const closeMobileCart = () => {
+    const box = document.querySelector(".carrito");
+    box?.classList.remove("is-open");
+};
+
+const toggleMobileCart = () => {
+    const box = document.querySelector(".carrito");
+    box?.classList.toggle("is-open");
+};
+
 const parsePrice = (value) => {
     if (typeof value === "number") {
         return Number.isFinite(value) ? value : 0;
@@ -128,6 +147,7 @@ const renderCart = () => {
     if (!cart.items.length) {
         list.innerHTML = "<li>Tu carrito está vacío.</li>";
         totalEl.textContent = money(0);
+        setCartFabCount([]);
         if (box) {
             box.dataset.currentStoreId = "";
             box.dataset.currentStoreName = "";
@@ -141,6 +161,7 @@ const renderCart = () => {
         box.dataset.currentStoreName = cart.storeName || "";
         box.dataset.currentWhatsapp = cart.whatsapp || "";
     }
+    setCartFabCount(cart.items);
 
     let total = 0;
     cart.items.forEach((item) => {
@@ -202,6 +223,19 @@ const addToCart = (product) => {
     }
 
     const found = cart.items.find((item) => item.id === product.id);
+    const stockLimited = Number.isFinite(product.stock);
+
+    if (stockLimited) {
+        if (product.stock <= 0) {
+            showToast("Este producto esta agotado.", "warning");
+            return;
+        }
+
+        if (found && found.cantidad >= product.stock) {
+            showToast(`Solo quedan ${product.stock} unidades disponibles.`, "warning");
+            return;
+        }
+    }
 
     if (found) {
         found.cantidad += 1;
@@ -225,6 +259,10 @@ const updateItemQuantity = (itemId, action) => {
     }
 
     if (action === "increase") {
+        if (Number.isFinite(item.stock) && item.cantidad >= item.stock) {
+            showToast(`Stock maximo alcanzado (${item.stock}).`, "warning");
+            return;
+        }
         item.cantidad += 1;
     } else if (action === "decrease") {
         item.cantidad -= 1;
@@ -349,7 +387,16 @@ const saveOrderIfRegistered = async () => {
     });
 
     if (!response.ok) {
-        throw new Error("No se pudo guardar el pedido.");
+        let message = "No se pudo guardar el pedido.";
+        try {
+            const body = await response.json();
+            if (body?.error) {
+                message = body.error;
+            }
+        } catch {
+            // Sin cuerpo JSON valido
+        }
+        throw new Error(message);
     }
 };
 
@@ -375,8 +422,8 @@ const openWhatsApp = async () => {
 
     try {
         await saveOrderIfRegistered();
-    } catch {
-        showToast("No se pudo guardar historial, pero puedes enviar por WhatsApp.", "warning");
+    } catch (error) {
+        showToast(error?.message || "No se pudo guardar historial, pero puedes enviar por WhatsApp.", "warning");
     }
 
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
@@ -390,6 +437,7 @@ document.addEventListener("click", (event) => {
             id: Number(addBtn.dataset.id),
             nombre: addBtn.dataset.nombre,
             precio: parsePrice(addBtn.dataset.precio),
+            stock: addBtn.dataset.stock === "" ? null : Number(addBtn.dataset.stock),
             storeId: Number(addBtn.dataset.storeId),
             storeName: addBtn.dataset.storeName,
             whatsapp: addBtn.dataset.whatsapp,
@@ -401,6 +449,17 @@ document.addEventListener("click", (event) => {
         saveCart({ storeId: null, storeName: "", whatsapp: "", items: [] });
         renderCart();
         showToast("Carrito vaciado", "info");
+        closeMobileCart();
+        return;
+    }
+
+    if (event.target.id === "cart-fab") {
+        toggleMobileCart();
+        return;
+    }
+
+    if (event.target.id === "cart-close") {
+        closeMobileCart();
         return;
     }
 

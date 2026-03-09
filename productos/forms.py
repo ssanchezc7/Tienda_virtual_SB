@@ -3,6 +3,23 @@ from django.core.exceptions import ValidationError
 
 from .models import Categoria, ConsultaTienda, Producto, Resena, Tienda
 
+MAX_IMAGE_SIZE = 3 * 1024 * 1024
+ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
+
+
+def validate_image_file(image):
+    if not image:
+        return image
+
+    content_type = getattr(image, "content_type", "")
+    if content_type and content_type not in ALLOWED_IMAGE_TYPES:
+        raise ValidationError("Formato de imagen no permitido. Usa JPG, PNG o WEBP.")
+
+    if image.size > MAX_IMAGE_SIZE:
+        raise ValidationError("La imagen supera 3MB. Reduce su tamaño e intenta nuevamente.")
+
+    return image
+
 
 class ProductoForm(forms.ModelForm):
     class Meta:
@@ -10,6 +27,8 @@ class ProductoForm(forms.ModelForm):
         fields = [
             "nombre",
             "imagen",
+            "imagen_secundaria",
+            "imagen_detalle",
             "descripcion",
             "precio",
             "descuento",
@@ -29,19 +48,37 @@ class ProductoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
-        self.fields["categoria"].queryset = Categoria.objects.filter(activo=True)
+        self.fields["categoria"].queryset = Categoria.objects.filter(activo=True).select_related("parent").order_by("parent__nombre", "nombre")
         self.fields["tienda"].queryset = Tienda.objects.filter(activa=True)
+
+        self.fields["categoria"].label_from_instance = (
+            lambda categoria: f"- {categoria.nombre}" if categoria.parent else categoria.nombre
+        )
 
         if user is not None and user.is_authenticated and not user.is_superuser:
             perfil = getattr(user, "perfil", None)
             if perfil and perfil.rol == "vendedor":
                 self.fields["tienda"].queryset = Tienda.objects.filter(vendedor=user, activa=True)
 
+    def clean_imagen(self):
+        return validate_image_file(self.cleaned_data.get("imagen"))
+
+    def clean_imagen_secundaria(self):
+        return validate_image_file(self.cleaned_data.get("imagen_secundaria"))
+
+    def clean_imagen_detalle(self):
+        return validate_image_file(self.cleaned_data.get("imagen_detalle"))
+
 
 class CategoriaForm(forms.ModelForm):
     class Meta:
         model = Categoria
-        fields = ["nombre", "activo"]
+        fields = ["nombre", "parent", "activo"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["parent"].required = False
+        self.fields["parent"].queryset = Categoria.objects.filter(activo=True, parent__isnull=True).order_by("nombre")
 
 
 class TiendaForm(forms.ModelForm):
@@ -51,7 +88,10 @@ class TiendaForm(forms.ModelForm):
             "nombre",
             "descripcion",
             "logo",
+            "banner",
             "whatsapp",
+            "ubicacion",
+            "color_tema",
             "activa",
         ]
         widgets = {
@@ -59,6 +99,11 @@ class TiendaForm(forms.ModelForm):
                 attrs={
                     "placeholder": "Ej: 5939XXXXXXXX",
                     "inputmode": "numeric",
+                }
+            ),
+            "ubicacion": forms.TextInput(
+                attrs={
+                    "placeholder": "Ej: Guayaquil, Av. Principal y Calle 10",
                 }
             ),
         }
@@ -74,6 +119,12 @@ class TiendaForm(forms.ModelForm):
             )
 
         return digits
+
+    def clean_logo(self):
+        return validate_image_file(self.cleaned_data.get("logo"))
+
+    def clean_banner(self):
+        return validate_image_file(self.cleaned_data.get("banner"))
 
 
 class ResenaForm(forms.ModelForm):

@@ -1,10 +1,13 @@
 {% extends 'base.html' %}
 
-{% block title %}Registro{% endblock title %}
+{% block title %}Eliminar cuenta{% endblock title %}
 
 {% block content %}
 <section class="form-card">
-    <h2>Crear cuenta de cliente</h2>
+    <h2>Eliminar mi cuenta</h2>
+    <p class="error">Esta accion es permanente y no se puede deshacer.</p>
+    <p class="form-help">Para confirmar, escribe tu contrasena actual.</p>
+
     <form method="post" class="producto-form">
         {% csrf_token %}
         {% for field in form %}
@@ -19,7 +22,11 @@
             {% endif %}
         </div>
         {% endfor %}
-        <button type="submit" class="btn-whatsapp">Crear cuenta</button>
+
+        <div class="form-actions">
+            <a href="{% url 'productos:home' %}" class="btn-secundario-link">Cancelar</a>
+            <button type="submit" class="btn-delete">Eliminar mi cuenta</button>
+        </div>
     </form>
 </section>
 {% endblock content %}

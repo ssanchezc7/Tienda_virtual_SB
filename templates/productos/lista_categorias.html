@@ -10,7 +10,11 @@
     <ul class="list-plain">
         {% for categoria in categorias %}
         <li>
+            {% if categoria.parent %}
+            <strong>{{ categoria.parent.nombre }} > {{ categoria.nombre }}</strong>
+            {% else %}
             <strong>{{ categoria.nombre }}</strong>
+            {% endif %}
             {% if categoria.activo %}
             <span class="tag-envio">Activa</span>
             {% else %}

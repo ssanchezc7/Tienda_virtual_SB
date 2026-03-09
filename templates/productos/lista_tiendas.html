@@ -4,11 +4,20 @@
 {% block title %}Marketplace | Tiendas{% endblock title %}
 
 {% block content %}
-<section class="form-card">
+<section class="form-card home-section">
+    <h2>Buscar tienda</h2>
+    <form method="get" class="filtros-form">
+        <input id="tienda-search-input" type="search" name="tienda" placeholder="Buscar por nombre o descripcion..." value="{{ busqueda_tienda }}">
+        <button type="submit">Buscar</button>
+    </form>
+    <p id="tienda-search-status" class="search-status is-hidden">No se encontraron tiendas con ese criterio.</p>
+</section>
+
+<section class="form-card home-section">
     <h2>🔥 Tiendas populares</h2>
     <div class="store-grid">
         {% for tienda in populares %}
-        <article class="store-card">
+        <article class="store-card searchable-store" data-store-search="{{ tienda.nombre|lower }} {{ tienda.descripcion|lower }} {{ tienda.vendedor.username|lower }}">
             {% if tienda.logo %}
             <img src="{{ tienda.logo.url }}" alt="{{ tienda.nombre }}">
             {% else %}
@@ -27,7 +36,7 @@
 </section>
 
 {% if user.is_authenticated and favoritas %}
-<section class="form-card">
+<section class="form-card home-section">
     <h2>⭐ Tus tiendas favoritas</h2>
     <div class="favorite-strip">
         {% for tienda in favoritas %}
@@ -40,11 +49,11 @@
 </section>
 {% endif %}
 
-<section class="form-card">
+<section class="form-card home-section">
     <h2>🛍 Todas las tiendas</h2>
     <ul class="list-plain">
         {% for tienda in tiendas %}
-        <li>
+        <li class="searchable-store" data-store-search="{{ tienda.nombre|lower }} {{ tienda.descripcion|lower }} {{ tienda.vendedor.username|lower }}">
             <a href="{% url 'productos:detalle_tienda' tienda.id %}">{{ tienda.nombre }}</a>
             <span class="descripcion">- {{ tienda.vendedor.username }} | {{ tienda.calificacion|stars }}</span>
         </li>
@@ -53,4 +62,70 @@
         {% endfor %}
     </ul>
 </section>
+
+{% if categorias_inicio %}
+<section class="form-card home-section">
+    <h2>Categorias</h2>
+    <div class="categories-grid">
+        {% for item in categorias_inicio %}
+        <a class="category-card" href="{% url 'productos:detalle_categoria' item.slug %}">
+            <strong>{{ item.categoria.nombre|category_icon }} {{ item.categoria.nombre }}</strong>
+            <span>{{ item.total }} productos</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if categorias_destacadas %}
+{% for bloque in categorias_destacadas %}
+<section class="form-card home-section">
+    <h2>{{ bloque.categoria.nombre|category_icon }} Recomendados</h2>
+    <div class="recommended-grid">
+        {% for producto in bloque.productos %}
+        <article class="recommended-card">
+            {% if producto.imagen %}
+            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+            {% else %}
+            <div class="img-placeholder">Sin imagen</div>
+            {% endif %}
+            <h3>{{ producto.nombre }}</h3>
+            <p class="descripcion">{{ producto.tienda.nombre }}</p>
+            <p class="precio">${{ producto.precio_final }}</p>
+            <a class="btn-admin" href="{% url 'productos:detalle_tienda' producto.tienda.id %}">Ver tienda</a>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endfor %}
+{% endif %}
+
+<script>
+    (function () {
+        var input = document.getElementById("tienda-search-input");
+        var status = document.getElementById("tienda-search-status");
+        if (!input) return;
+
+        var items = Array.prototype.slice.call(document.querySelectorAll(".searchable-store"));
+
+        function applyFilter() {
+            var query = (input.value || "").trim().toLowerCase();
+            var visible = 0;
+
+            items.forEach(function (el) {
+                var haystack = (el.getAttribute("data-store-search") || "").toLowerCase();
+                var match = !query || haystack.indexOf(query) !== -1;
+                el.style.display = match ? "" : "none";
+                if (match) visible += 1;
+            });
+
+            if (status) {
+                status.classList.toggle("is-hidden", visible > 0 || !query);
+            }
+        }
+
+        input.addEventListener("input", applyFilter);
+        applyFilter();
+    })();
+</script>
 {% endblock content %}

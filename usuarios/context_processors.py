@@ -3,8 +3,16 @@ from .permissions import can_manage_products, is_admin, user_role
 
 def role_context(request):
     role = user_role(request.user)
+    perfil = None
+    if request.user.is_authenticated:
+        try:
+            perfil = request.user.perfil
+        except Exception:
+            perfil = None
+
     return {
         "role_name": role,
         "is_admin_role": is_admin(request.user),
         "can_manage_products": can_manage_products(request.user),
+        "current_profile": perfil,
     }

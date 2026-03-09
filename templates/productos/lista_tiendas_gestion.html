@@ -5,7 +5,15 @@
 {% block content %}
 <section class="form-card">
     <h2>Gestion de tiendas</h2>
+    {% if role_name == 'vendedor' %}
+    <p class="form-help">Tiendas creadas: {{ cantidad_tiendas_vendedor }} / {{ max_tiendas_vendedor }}</p>
+    {% endif %}
+
+    {% if limite_tiendas_alcanzado %}
+    <p class="error">Alcanzaste el limite de {{ max_tiendas_vendedor }} tiendas.</p>
+    {% else %}
     <p><a class="btn-admin" href="{% url 'productos:crear_tienda' %}">+ Nueva tienda</a></p>
+    {% endif %}
 
     <ul class="list-plain">
         {% for tienda in tiendas %}

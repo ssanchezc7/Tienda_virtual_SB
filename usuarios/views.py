@@ -2,15 +2,21 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.conf import settings
 
 from productos.models import Pedido
 
 from .forms import (
+    ConfirmarEliminacionCuentaForm,
     LoginForm,
     PerfilVendedorForm,
     RegistroClienteForm,
+    UsuarioCuentaForm,
+    UsuarioPerfilForm,
     VendedorCreateForm,
     VendedorSelfUpdateForm,
     VendedorUpdateForm,
@@ -30,8 +36,35 @@ def registro_cliente(request: HttpRequest) -> HttpResponse:
             perfil, _ = Perfil.objects.get_or_create(user=user)
             perfil.rol = Perfil.ROL_CLIENTE
             perfil.save(update_fields=["rol"])
+
+            # Correo de bienvenida al registrar cuenta.
+            if user.email:
+                asunto = "Felicidades, tu cuenta fue creada con exito"
+                mensaje = render_to_string(
+                    "usuarios/emails/bienvenida_registro.txt",
+                    {"username": user.username},
+                )
+                try:
+                    send_mail(
+                        subject=asunto,
+                        message=mensaje,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[user.email],
+                        fail_silently=False,
+                    )
+                    if settings.EMAIL_BACKEND == "django.core.mail.backends.console.EmailBackend":
+                        messages.info(request, "Correo de bienvenida generado en consola (modo desarrollo).")
+                except Exception as exc:
+                    if settings.DEBUG:
+                        messages.warning(
+                            request,
+                            f"La cuenta se creo, pero no se pudo enviar el correo de bienvenida. Detalle: {exc}",
+                        )
+                    else:
+                        messages.warning(request, "La cuenta se creo, pero no se pudo enviar el correo de bienvenida.")
+
             login(request, user)
-            messages.success(request, "Cuenta creada correctamente.")
+            messages.success(request, "Felicidades, su cuenta se ha creado con exito.")
             return redirect("productos:home")
     else:
         form = RegistroClienteForm()
@@ -59,6 +92,53 @@ def logout_view(request: HttpRequest) -> HttpResponse:
     logout(request)
     messages.info(request, "Sesion cerrada.")
     return redirect("productos:home")
+
+
+@login_required
+def mi_perfil(request: HttpRequest) -> HttpResponse:
+    perfil, _ = Perfil.objects.get_or_create(user=request.user)
+
+    if request.method == "POST":
+        user_form = UsuarioCuentaForm(request.POST, instance=request.user)
+        perfil_form = UsuarioPerfilForm(request.POST, request.FILES, instance=perfil)
+        if user_form.is_valid() and perfil_form.is_valid():
+            user_form.save()
+            perfil_form.save()
+            messages.success(request, "Perfil actualizado correctamente.")
+            return redirect("usuarios:mi_perfil")
+    else:
+        user_form = UsuarioCuentaForm(instance=request.user)
+        perfil_form = UsuarioPerfilForm(instance=perfil)
+
+    return render(
+        request,
+        "usuarios/mi_perfil.html",
+        {
+            "user_form": user_form,
+            "perfil_form": perfil_form,
+            "perfil": perfil,
+        },
+    )
+
+
+@login_required
+def eliminar_mi_cuenta(request: HttpRequest) -> HttpResponse:
+    if request.method == "POST":
+        form = ConfirmarEliminacionCuentaForm(request.POST)
+        if form.is_valid():
+            if not request.user.check_password(form.cleaned_data["password"]):
+                messages.error(request, "La contrasena no coincide.")
+            else:
+                user = request.user
+                username = user.username
+                logout(request)
+                user.delete()
+                messages.success(request, f"Tu cuenta '{username}' fue eliminada correctamente.")
+                return redirect("productos:home")
+    else:
+        form = ConfirmarEliminacionCuentaForm()
+
+    return render(request, "usuarios/eliminar_mi_cuenta.html", {"form": form})
 
 
 @admin_required

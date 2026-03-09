@@ -14,7 +14,7 @@
             <option value="">Todas las categorías</option>
             {% for categoria in categorias %}
             <option value="{{ categoria.id }}" {% if categoria_actual == categoria.id|stringformat:'s' %}selected{% endif %}>
-                {{ categoria.nombre }}
+                {% if categoria.parent %}{{ categoria.parent.nombre }} - {{ categoria.nombre }}{% else %}{{ categoria.nombre }}{% endif %}
             </option>
             {% endfor %}
         </select>
@@ -27,55 +27,86 @@
     </form>
 </section>
 
-<section class="grid-productos">
-    {% for producto in productos %}
-    <article class="card-producto">
-        {% if producto.imagen %}
-        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
-        {% else %}
-        <div class="img-placeholder">Sin imagen</div>
-        {% endif %}
-
-        <h3>{{ producto.nombre }}</h3>
-        <p class="descripcion"><strong>Tienda:</strong> {{ producto.tienda.nombre|default:'Sin tienda' }}</p>
-        <p class="descripcion">{{ producto.descripcion }}</p>
-
-        <div class="precio-wrap">
-            {% if producto.descuento > 0 %}
-            <p class="precio-anterior">${{ producto.precio }}</p>
-            <p class="precio">${{ producto.precio_final }}</p>
-            <span class="tag-descuento">🔥 -{{ producto.descuento }}%</span>
-            {% else %}
-            <p class="precio">${{ producto.precio }}</p>
-            {% endif %}
-        </div>
-
-        {% if producto.envio_gratis %}
-        <p class="tag-envio">🚚 Envío gratis</p>
-        {% endif %}
-
-        {% if can_manage_products and not producto.activo %}
-        <p class="tag-inactivo">Producto inactivo</p>
-        {% endif %}
-
-        <div class="producto-admin-actions">
-            <a class="btn-edit" href="{% url 'productos:editar' producto.id %}">Editar</a>
-            <a class="btn-delete-link" href="{% url 'productos:eliminar' producto.id %}">Eliminar</a>
-        </div>
-        <form method="post" action="{% url 'productos:toggle_activo' producto.id %}" class="toggle-form">
-            {% csrf_token %}
-            <input type="hidden" name="q" value="{{ q }}">
-            <input type="hidden" name="categoria" value="{{ categoria_actual }}">
-            <input type="hidden" name="estado" value="{{ estado_actual }}">
-            {% if producto.activo %}
-            <button type="submit" class="btn-toggle">Desactivar</button>
-            {% else %}
-            <button type="submit" class="btn-toggle btn-toggle-on">Activar</button>
-            {% endif %}
-        </form>
-    </article>
-    {% empty %}
-    <p>No hay productos disponibles por ahora.</p>
-    {% endfor %}
+<section class="form-card">
+    <h2>Listado de productos</h2>
+    <div class="table-wrap">
+        <table class="productos-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                <tr>
+                    <td>
+                        <div class="table-product-cell">
+                            {% if producto.imagen %}
+                            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                            {% else %}
+                            <div class="table-thumb-placeholder">Sin imagen</div>
+                            {% endif %}
+                            <div>
+                                <strong>{{ producto.nombre }}</strong>
+                                <p class="descripcion">{{ producto.tienda.nombre|default:'Sin tienda' }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if producto.descuento > 0 %}
+                        <span class="precio">${{ producto.precio_final }}</span>
+                        <small class="precio-anterior">${{ producto.precio }}</small>
+                        {% else %}
+                        <span class="precio">${{ producto.precio }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if producto.stock == None %}
+                        -
+                        {% elif producto.stock == 0 %}
+                        <span class="tag-inactivo">Agotado</span>
+                        {% else %}
+                        {{ producto.stock }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if producto.activo %}
+                        <span class="tag-envio">Activo</span>
+                        {% else %}
+                        <span class="tag-inactivo">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <a class="btn-edit" href="{% url 'productos:editar' producto.id %}">Editar</a>
+                            <form method="post" action="{% url 'productos:duplicar' producto.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-toggle">Duplicar</button>
+                            </form>
+                            <a class="btn-delete-link" href="{% url 'productos:eliminar' producto.id %}">Eliminar</a>
+                            <form method="post" action="{% url 'productos:toggle_activo' producto.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="q" value="{{ q }}">
+                                <input type="hidden" name="categoria" value="{{ categoria_actual }}">
+                                <input type="hidden" name="estado" value="{{ estado_actual }}">
+                                {% if producto.activo %}
+                                <button type="submit" class="btn-toggle">Desactivar</button>
+                                {% else %}
+                                <button type="submit" class="btn-toggle btn-toggle-on">Activar</button>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5">No hay productos disponibles por ahora.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </section>
 {% endblock content %}

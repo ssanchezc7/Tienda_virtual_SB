@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Vendedor{% endblock title %}
+
+{% block content %}
+<section class="form-card">
+    <h2>Panel del vendedor</h2>
+    <form method="get" class="dashboard-filter">
+        <label for="tienda">Filtrar por tienda</label>
+        <select id="tienda" name="tienda">
+            <option value="">Todas las tiendas</option>
+            {% for tienda in tiendas_filtro %}
+            <option value="{{ tienda.id }}" {% if tienda_filtro == tienda.id|stringformat:'s' %}selected{% endif %}>{{ tienda.nombre }}</option>
+            {% endfor %}
+        </select>
+        <select name="estado_pedido">
+            <option value="todos" {% if estado_filtro == 'todos' %}selected{% endif %}>Todos los estados</option>
+            {% for value, label in estados_pedido %}
+            <option value="{{ value }}" {% if estado_filtro == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <input type="search" name="pedido" placeholder="Buscar por ID o codigo (PED-000123)" value="{{ pedido_query }}">
+        <button type="submit" class="btn-toggle btn-toggle-on">Aplicar</button>
+    </form>
+
+    <div class="metrics-grid">
+        <article class="metric-card"><p>Productos publicados</p><strong>{{ total_productos }}</strong></article>
+        <article class="metric-card"><p>Productos activos</p><strong>{{ productos_activos }}</strong></article>
+        <article class="metric-card"><p>Calificacion</p><strong>⭐ {{ rating_promedio }}</strong></article>
+        <article class="metric-card"><p>Comentarios</p><strong>{{ total_comentarios }}</strong></article>
+        <article class="metric-card"><p>Pedidos recibidos</p><strong>{{ pedidos_recibidos }}</strong></article>
+        <article class="metric-card"><p>Pedidos este mes</p><strong>{{ pedidos_mes }}</strong></article>
+        <article class="metric-card"><p>Pendientes</p><strong>{{ pedidos_pendientes }}</strong></article>
+        <article class="metric-card"><p>Confirmados</p><strong>{{ pedidos_confirmados }}</strong></article>
+        <article class="metric-card"><p>Vendidos</p><strong>{{ pedidos_vendidos }}</strong></article>
+        <article class="metric-card"><p>Entregados</p><strong>{{ pedidos_entregados }}</strong></article>
+        <article class="metric-card"><p>Cancelados</p><strong>{{ pedidos_cancelados }}</strong></article>
+    </div>
+</section>
+
+<section class="form-card">
+    <h3>Pedidos recientes</h3>
+    <div class="table-wrap">
+        <table class="productos-table">
+            <thead>
+                <tr>
+                    <th>Pedido</th>
+                    <th>Referencia</th>
+                    <th>Tienda</th>
+                    <th>Cliente</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th>Accion</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in latest_pedidos %}
+                <tr>
+                    <td>#{{ pedido.id }}</td>
+                    <td><strong>{{ pedido.referencia_vendedor }}</strong></td>
+                    <td>{{ pedido.tienda.nombre|default:'Sin tienda' }}</td>
+                    <td>{{ pedido.cliente.username }}</td>
+                    <td>${{ pedido.total }}</td>
+                    <td>{{ pedido.get_estado_display }}</td>
+                    <td>{{ pedido.fecha_creacion|date:'d/m/Y H:i' }}</td>
+                    <td>
+                        <form method="post" action="{% url 'productos:actualizar_estado_pedido' pedido.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="tienda" value="{{ tienda_filtro }}">
+                            <input type="hidden" name="pedido" value="{{ pedido_query }}">
+                            <input type="hidden" name="estado_pedido" value="{{ estado_filtro }}">
+                            <select name="estado" class="estado-select">
+                                {% for value, label in estados_pedido %}
+                                <option value="{{ value }}" {% if pedido.estado == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn-toggle">Actualizar</button>
+                        </form>
+                        {% if pedido.estado != 'vendido' and pedido.estado != 'entregado' and pedido.estado != 'cancelado' %}
+                        <form method="post" action="{% url 'productos:actualizar_estado_pedido' pedido.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="tienda" value="{{ tienda_filtro }}">
+                            <input type="hidden" name="pedido" value="{{ pedido_query }}">
+                            <input type="hidden" name="estado_pedido" value="{{ estado_filtro }}">
+                            <input type="hidden" name="estado" value="vendido">
+                            <button type="submit" class="btn-toggle btn-toggle-on">Marcar vendido</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8">No hay pedidos recientes.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="form-card">
+    <h3>Historial completo de pedidos</h3>
+    <div class="table-wrap">
+        <table class="productos-table">
+            <thead>
+                <tr>
+                    <th>Pedido</th>
+                    <th>Referencia</th>
+                    <th>Tienda</th>
+                    <th>Cliente</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in pedidos_page %}
+                <tr>
+                    <td>#{{ pedido.id }}</td>
+                    <td>{{ pedido.referencia_vendedor }}</td>
+                    <td>{{ pedido.tienda.nombre|default:'Sin tienda' }}</td>
+                    <td>{{ pedido.cliente.username }}</td>
+                    <td>${{ pedido.total }}</td>
+                    <td>{{ pedido.get_estado_display }}</td>
+                    <td>{{ pedido.fecha_creacion|date:'d/m/Y H:i' }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7">No hay pedidos para este filtro.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if pedidos_page.paginator.num_pages > 1 %}
+    <div class="pagination-row">
+        {% if pedidos_page.has_previous %}
+        <a class="btn-secundario-link" href="?page={{ pedidos_page.previous_page_number }}&tienda={{ tienda_filtro }}&pedido={{ pedido_query }}&estado_pedido={{ estado_filtro }}">Anterior</a>
+        {% endif %}
+        <span>Pagina {{ pedidos_page.number }} de {{ pedidos_page.paginator.num_pages }}</span>
+        {% if pedidos_page.has_next %}
+        <a class="btn-secundario-link" href="?page={{ pedidos_page.next_page_number }}&tienda={{ tienda_filtro }}&pedido={{ pedido_query }}&estado_pedido={{ estado_filtro }}">Siguiente</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
+
+<section class="form-card">
+    <h3>Notificaciones</h3>
+    <ul class="list-plain">
+        <li>🔔 Nuevas reseñas registradas: {{ total_resenas }}</li>
+        <li>🔔 Mensajes de clientes: {{ total_comentarios }}</li>
+        <li>🔔 Pedidos recibidos: {{ pedidos_recibidos }}</li>
+    </ul>
+</section>
+
+<section class="form-card">
+    <h3>Ultimas reseñas</h3>
+    <ul class="list-plain comment-list">
+        {% for resena in latest_resenas %}
+        <li class="comment-item">
+            {% if resena.usuario.perfil and resena.usuario.perfil.foto_perfil %}
+            <img class="comment-avatar" src="{{ resena.usuario.perfil.foto_perfil.url }}" alt="{{ resena.usuario.username }}">
+            {% else %}
+            <span class="comment-avatar comment-avatar-fallback">{{ resena.usuario.username|first|upper }}</span>
+            {% endif %}
+            <div>
+                <strong>{{ resena.usuario.username }}</strong>
+                {% if resena.usuario.perfil and resena.usuario.perfil.biografia %}
+                <p class="comment-bio">{{ resena.usuario.perfil.biografia|truncatechars:70 }}</p>
+                {% endif %}
+                <p>en {{ resena.tienda.nombre }}: {{ resena.estrellas }}★ - {{ resena.comentario|default:'Sin comentario' }}</p>
+            </div>
+        </li>
+        {% empty %}
+        <li>No hay reseñas recientes.</li>
+        {% endfor %}
+    </ul>
+</section>
+
+<section class="form-card">
+    <h3>Solicitudes recientes</h3>
+    <ul class="list-plain comment-list">
+        {% for consulta in latest_consultas %}
+        <li class="comment-item">
+            {% if consulta.usuario.perfil and consulta.usuario.perfil.foto_perfil %}
+            <img class="comment-avatar" src="{{ consulta.usuario.perfil.foto_perfil.url }}" alt="{{ consulta.usuario.username }}">
+            {% else %}
+            <span class="comment-avatar comment-avatar-fallback">{{ consulta.usuario.username|first|upper }}</span>
+            {% endif %}
+            <div>
+                <strong>{{ consulta.usuario.username }}</strong>
+                {% if consulta.usuario.perfil and consulta.usuario.perfil.biografia %}
+                <p class="comment-bio">{{ consulta.usuario.perfil.biografia|truncatechars:70 }}</p>
+                {% endif %}
+                <p>({{ consulta.tienda.nombre }}): {{ consulta.mensaje }}</p>
+            </div>
+        </li>
+        {% empty %}
+        <li>No hay solicitudes recientes.</li>
+        {% endfor %}
+    </ul>
+</section>
+
+<section class="form-card">
+    <h3>Productos mas vendidos</h3>
+    <div class="sales-list">
+        {% for item in top_productos %}
+        <div class="sales-row">
+            <div class="sales-row-head">
+                <span>{{ item.producto_nombre }}</span>
+                <strong>{{ item.total_vendidos }} uds</strong>
+            </div>
+            <div class="sales-bar">
+                <progress value="{{ item.total_vendidos }}" max="{{ max_top_vendidos }}"></progress>
+            </div>
+        </div>
+        {% empty %}
+        <p>No hay ventas registradas aun.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="form-card">
+    <h3>Ver mi tienda</h3>
+    <div class="store-links-grid">
+        {% for tienda in tiendas %}
+        <a class="btn-admin" href="{% url 'productos:detalle_tienda' tienda.id %}">{{ tienda.nombre }}</a>
+        {% empty %}
+        <p>Aun no tienes tiendas creadas.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock content %}

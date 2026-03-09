@@ -28,6 +28,12 @@
             {% if field.name == 'whatsapp' %}
             <small class="help">Ingresa solo numeros con codigo de pais, por ejemplo: 5939XXXXXXXX.</small>
             {% endif %}
+            {% if field.name == 'logo' or field.name == 'banner' %}
+            <small class="help">Formatos permitidos: JPG, PNG o WEBP. Tamano maximo: 3MB.</small>
+            {% endif %}
+            {% if field.name == 'color_tema' %}
+            <small class="help">Usa formato hexadecimal, por ejemplo: #0f766e.</small>
+            {% endif %}
             {% if field.errors %}
             <small class="error">{{ field.errors|striptags }}</small>
             {% endif %}

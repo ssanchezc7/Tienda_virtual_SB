@@ -1,0 +1,8 @@
+Hola {{ username }},
+
+Felicidades, su cuenta se ha creado con exito en SimonStore.
+
+Ya puedes iniciar sesion, explorar tiendas y realizar pedidos.
+
+Bienvenido a nuestra comunidad.
+Equipo SimonStore

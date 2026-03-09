@@ -5,14 +5,34 @@
 
 {% block content %}
 <section class="form-card">
+    {% if tienda.banner %}
+    <img class="store-banner" src="{{ tienda.banner.url }}" alt="Banner de {{ tienda.nombre }}">
+    {% endif %}
     <h2>{{ tienda.nombre }}</h2>
     <p class="store-rating">{{ tienda.calificacion|stars }} <span>({{ tienda.calificacion }})</span></p>
     <p class="descripcion">{{ tienda.descripcion }}</p>
     <div class="store-metrics">
         <span>Vendedor: {{ tienda.vendedor.username }}</span>
+        {% if tienda.ubicacion %}
+        <span>
+            <a class="map-link" href="{{ ubicacion_maps_url }}" target="_blank" rel="noopener noreferrer">
+                <span class="map-pin" aria-hidden="true">📍</span>
+                {{ tienda.ubicacion }}
+            </a>
+        </span>
+        {% else %}
+        <span>📍 Ubicacion: No definida</span>
+        {% endif %}
         <span>Ventas: {{ tienda.total_ventas }}</span>
+        <span>Seguidores: {{ total_favoritos }}</span>
         <span>Reputacion: {{ tienda.reputacion }}</span>
     </div>
+
+    {% if can_edit_tienda %}
+    <p>
+        <a class="btn-admin" href="{% url 'productos:editar_tienda' tienda.id %}">Editar ubicacion de la tienda</a>
+    </p>
+    {% endif %}
 
     {% if user.is_authenticated %}
     <form method="post" action="{% url 'productos:toggle_favorito' tienda.id %}" class="toggle-form">
@@ -32,7 +52,9 @@
         <select name="categoria">
             <option value="">Todas las categorias</option>
             {% for categoria in categorias %}
-            <option value="{{ categoria.id }}" {% if categoria_actual == categoria.id|stringformat:'s' %}selected{% endif %}>{{ categoria.nombre }}</option>
+            <option value="{{ categoria.id }}" {% if categoria_actual == categoria.id|stringformat:'s' %}selected{% endif %}>
+                {% if categoria.parent %}{{ categoria.parent.nombre }} - {{ categoria.nombre }}{% else %}{{ categoria.nombre }}{% endif %}
+            </option>
             {% endfor %}
         </select>
         <button type="submit">Filtrar</button>
@@ -47,17 +69,31 @@
         {% else %}
         <div class="img-placeholder">Sin imagen</div>
         {% endif %}
+        {% if producto.imagen_secundaria or producto.imagen_detalle %}
+        <div class="product-mini-gallery">
+            {% if producto.imagen_secundaria %}<img src="{{ producto.imagen_secundaria.url }}" alt="Imagen secundaria de {{ producto.nombre }}">{% endif %}
+            {% if producto.imagen_detalle %}<img src="{{ producto.imagen_detalle.url }}" alt="Detalle de {{ producto.nombre }}">{% endif %}
+        </div>
+        {% endif %}
         <h3>{{ producto.nombre }}</h3>
         <p class="descripcion">{{ producto.descripcion }}</p>
+        {% if producto.stock is not None %}
+        <p class="stock-note">Stock: {{ producto.stock }}</p>
+        {% endif %}
         <p class="precio">${{ producto.precio_final }}</p>
+        {% if producto.stock == 0 %}
+        <span class="tag-inactivo">Agotado</span>
+        {% endif %}
         <button
             class="btn-agregar"
             data-id="{{ producto.id }}"
             data-nombre="{{ producto.nombre }}"
             data-precio="{{ producto.precio_final }}"
+            data-stock="{{ producto.stock|default:'' }}"
             data-store-id="{{ tienda.id }}"
             data-store-name="{{ tienda.nombre }}"
-            data-whatsapp="{{ tienda.whatsapp }}">
+            data-whatsapp="{{ tienda.whatsapp }}"
+            {% if producto.stock == 0 %}disabled{% endif %}>
             Agregar al carrito
         </button>
     </article>
@@ -71,7 +107,10 @@
     data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"
     data-role="{{ role_name }}"
     data-save-order-url="{% url 'productos:guardar_pedido' %}">
-    <h2>Carrito</h2>
+    <div class="cart-head">
+        <h2>Carrito</h2>
+        <button id="cart-close" class="cart-close" type="button" aria-label="Cerrar carrito">x</button>
+    </div>
     <ul id="lista-carrito"></ul>
     <p class="total">Total: <strong id="total-carrito">$0.00</strong></p>
     <div class="acciones-carrito">
@@ -79,6 +118,11 @@
         <button id="comprar-whatsapp" class="btn-whatsapp">Comprar por WhatsApp</button>
     </div>
 </aside>
+
+<button id="cart-fab" class="cart-fab" type="button" aria-label="Abrir carrito">
+    Carrito
+    <span id="cart-fab-count" class="cart-fab-count">0</span>
+</button>
 
 {% if user.is_authenticated %}
 <section class="form-card">
@@ -95,9 +139,22 @@
     </form>
 
     <h3>Resenas</h3>
-    <ul class="list-plain">
+    <ul class="list-plain comment-list">
         {% for resena in resenas %}
-        <li><strong>{{ resena.usuario.username }}</strong> - {{ resena.estrellas }} estrellas - {{ resena.comentario }}</li>
+        <li class="comment-item">
+            {% if resena.usuario.perfil and resena.usuario.perfil.foto_perfil %}
+            <img class="comment-avatar" src="{{ resena.usuario.perfil.foto_perfil.url }}" alt="{{ resena.usuario.username }}">
+            {% else %}
+            <span class="comment-avatar comment-avatar-fallback">{{ resena.usuario.username|first|upper }}</span>
+            {% endif %}
+            <div>
+                <strong>{{ resena.usuario.username }}</strong>
+                {% if resena.usuario.perfil and resena.usuario.perfil.biografia %}
+                <p class="comment-bio">{{ resena.usuario.perfil.biografia|truncatechars:70 }}</p>
+                {% endif %}
+                <p>{{ resena.estrellas }} estrellas - {{ resena.comentario|default:'Sin comentario' }}</p>
+            </div>
+        </li>
         {% empty %}
         <li>Sin resenas aun.</li>
         {% endfor %}
@@ -117,9 +174,22 @@
         <button type="submit" class="btn-whatsapp">Enviar consulta</button>
     </form>
 
-    <ul class="list-plain">
+    <ul class="list-plain comment-list">
         {% for consulta in consultas %}
-        <li><strong>{{ consulta.usuario.username }}:</strong> {{ consulta.mensaje }}</li>
+        <li class="comment-item">
+            {% if consulta.usuario.perfil and consulta.usuario.perfil.foto_perfil %}
+            <img class="comment-avatar" src="{{ consulta.usuario.perfil.foto_perfil.url }}" alt="{{ consulta.usuario.username }}">
+            {% else %}
+            <span class="comment-avatar comment-avatar-fallback">{{ consulta.usuario.username|first|upper }}</span>
+            {% endif %}
+            <div>
+                <strong>{{ consulta.usuario.username }}</strong>
+                {% if consulta.usuario.perfil and consulta.usuario.perfil.biografia %}
+                <p class="comment-bio">{{ consulta.usuario.perfil.biografia|truncatechars:70 }}</p>
+                {% endif %}
+                <p>{{ consulta.mensaje }}</p>
+            </div>
+        </li>
         {% empty %}
         <li>Aun no hay consultas.</li>
         {% endfor %}

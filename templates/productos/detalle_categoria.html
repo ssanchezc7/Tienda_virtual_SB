@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load market_filters %}
+
+{% block title %}{{ categoria.nombre }} | Categoria{% endblock title %}
+
+{% block content %}
+<section class="form-card">
+    <h2>{{ categoria.nombre }}</h2>
+    <p class="form-help">Productos encontrados: <strong>{{ total_productos }}</strong></p>
+
+    {% if subcategorias %}
+    <p class="form-help">Subcategorias:</p>
+    <div class="favorite-strip">
+        {% for sub in subcategorias %}
+        <span class="favorite-chip">{{ sub.nombre }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="get" class="filtros-form">
+        <select name="subcategoria">
+            <option value="" {% if not subcategoria_actual %}selected{% endif %}>Todas las subcategorias</option>
+            {% for sub in subcategorias %}
+            <option value="{{ sub.id }}" {% if subcategoria_actual == sub.id|stringformat:'s' %}selected{% endif %}>{{ sub.nombre }}</option>
+            {% endfor %}
+        </select>
+        <select name="orden">
+            <option value="recientes" {% if orden_actual == 'recientes' %}selected{% endif %}>Mas recientes</option>
+            <option value="baratos" {% if orden_actual == 'baratos' %}selected{% endif %}>Mas baratos</option>
+            <option value="caros" {% if orden_actual == 'caros' %}selected{% endif %}>Mas caros</option>
+            <option value="calificados" {% if orden_actual == 'calificados' %}selected{% endif %}>Mejor calificados</option>
+        </select>
+        <button type="submit">Aplicar</button>
+    </form>
+</section>
+
+<section class="grid-productos">
+    {% for producto in productos %}
+    <article class="card-producto">
+        {% if producto.imagen %}
+        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+        {% else %}
+        <div class="img-placeholder">Sin imagen</div>
+        {% endif %}
+        <h3>{{ producto.nombre }}</h3>
+        <p class="descripcion">{{ producto.tienda.nombre }}</p>
+        <p class="precio">${{ producto.precio_final }}</p>
+        <a class="btn-admin" href="{% url 'productos:detalle_tienda' producto.tienda.id %}">Ver tienda</a>
+    </article>
+    {% empty %}
+    <p>No hay productos para esta categoria aun.</p>
+    {% endfor %}
+</section>
+{% endblock content %}

@@ -7,12 +7,21 @@ from django.db import models
 
 class Categoria(models.Model):
     nombre = models.CharField(max_length=80, unique=True)
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        related_name="subcategorias",
+        blank=True,
+        null=True,
+    )
     activo = models.BooleanField(default=True)
 
     class Meta:
-        ordering = ["nombre"]
+        ordering = ["parent__nombre", "nombre"]
 
     def __str__(self) -> str:
+        if self.parent:
+            return f"{self.parent.nombre} > {self.nombre}"
         return self.nombre
 
 
@@ -20,8 +29,11 @@ class Tienda(models.Model):
     nombre = models.CharField(max_length=200)
     descripcion = models.TextField(blank=True)
     logo = models.ImageField(upload_to="tiendas/", blank=True, null=True)
+    banner = models.ImageField(upload_to="tiendas/banner/", blank=True, null=True)
     vendedor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tiendas")
     whatsapp = models.CharField(max_length=20)
+    ubicacion = models.CharField(max_length=120, blank=True)
+    color_tema = models.CharField(max_length=7, default="#0f766e")
     reputacion = models.FloatField(default=0)
     calificacion = models.FloatField(default=0)
     total_ventas = models.PositiveIntegerField(default=0)
@@ -63,6 +75,8 @@ class Producto(models.Model):
         null=True,
     )
     imagen = models.ImageField(upload_to="productos/", blank=True, null=True)
+    imagen_secundaria = models.ImageField(upload_to="productos/", blank=True, null=True)
+    imagen_detalle = models.ImageField(upload_to="productos/", blank=True, null=True)
     descripcion = models.TextField()
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     descuento = models.PositiveSmallIntegerField(default=0, help_text="Porcentaje 0-100")
@@ -93,6 +107,20 @@ class Producto(models.Model):
 
 
 class Pedido(models.Model):
+    ESTADO_PENDIENTE = "pendiente"
+    ESTADO_CONFIRMADO = "confirmado"
+    ESTADO_VENDIDO = "vendido"
+    ESTADO_ENTREGADO = "entregado"
+    ESTADO_CANCELADO = "cancelado"
+
+    ESTADOS = [
+        (ESTADO_PENDIENTE, "Pendiente"),
+        (ESTADO_CONFIRMADO, "Confirmado"),
+        (ESTADO_VENDIDO, "Vendido"),
+        (ESTADO_ENTREGADO, "Entregado"),
+        (ESTADO_CANCELADO, "Cancelado"),
+    ]
+
     cliente = models.ForeignKey(User, on_delete=models.CASCADE, related_name="pedidos")
     tienda = models.ForeignKey(
         Tienda,
@@ -101,11 +129,28 @@ class Pedido(models.Model):
         blank=True,
         null=True,
     )
+    codigo_vendedor = models.CharField(max_length=24, unique=True, blank=True, null=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
+    estado = models.CharField(max_length=20, choices=ESTADOS, default=ESTADO_PENDIENTE)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-fecha_creacion"]
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if not self.codigo_vendedor and self.pk:
+            codigo = f"PED-{self.pk:06d}"
+            type(self).objects.filter(pk=self.pk, codigo_vendedor__isnull=True).update(codigo_vendedor=codigo)
+            self.codigo_vendedor = codigo
+
+    @property
+    def referencia_vendedor(self) -> str:
+        if self.codigo_vendedor:
+            return self.codigo_vendedor
+        if self.pk:
+            return f"PED-{self.pk:06d}"
+        return "PED-SIN-ID"
 
 
 class PedidoItem(models.Model):

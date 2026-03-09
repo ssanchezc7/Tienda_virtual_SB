@@ -1,4 +1,4 @@
-{% load static %}
+{% load static market_filters %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -11,14 +11,38 @@
     <header class="topbar">
         <div class="topbar-inner">
             <h1><a class="brand-link" href="{% url 'productos:home' %}">🛒 SimonStore</a></h1>
-            <nav class="topnav">
+            <button id="menu-toggle" class="menu-toggle" type="button" aria-expanded="false" aria-controls="topnav-links">
+                <span class="menu-icon">&#9776;</span>
+                <span>SimonStore</span>
+            </button>
+            <nav id="topnav-links" class="topnav">
                 <a href="{% url 'productos:home' %}">Marketplace</a>
+                {% if menu_categorias %}
+                <details class="categories-menu">
+                    <summary>☰ Categorias</summary>
+                    <div class="categories-dropdown">
+                        {% for item in menu_categorias %}
+                        <a href="{% url 'productos:detalle_categoria' item.slug %}">
+                            {{ item.nombre|category_icon }} {{ item.nombre }} ({{ item.total }})
+                        </a>
+                        {% endfor %}
+                    </div>
+                </details>
+                {% endif %}
                 {% if user.is_authenticated %}
+                    <a href="{% url 'usuarios:mi_perfil' %}" class="profile-nav-link">
+                        {% if current_profile and current_profile.foto_perfil %}
+                        <img src="{{ current_profile.foto_perfil.url }}" alt="Perfil" class="profile-nav-avatar">
+                        {% else %}
+                        <span class="profile-nav-avatar profile-nav-avatar-fallback">{{ user.username|first|upper }}</span>
+                        {% endif %}
+                        <span>Mi perfil ({{ user.username }})</span>
+                    </a>
                     {% if role_name == 'cliente' %}
                     <a href="{% url 'usuarios:mis_pedidos' %}">Mis pedidos</a>
                     {% endif %}
                     {% if role_name == 'vendedor' %}
-                    <a href="{% url 'usuarios:mi_perfil_vendedor' %}">Mi perfil</a>
+                    <a href="{% url 'productos:dashboard_vendedor' %}">Dashboard</a>
                     {% endif %}
                     {% if can_manage_products %}
                     <a href="{% url 'productos:lista' %}">Productos</a>
@@ -44,8 +68,32 @@
     </section>
     {% endif %}
     <main class="container">
+        {% if request.path != '/' %}
+        <div class="back-nav-wrap">
+            <a href="{% url 'productos:home' %}" class="back-nav-btn" onclick="if (window.history.length > 1) { window.history.back(); return false; }">Volver</a>
+        </div>
+        {% endif %}
         {% block content %}{% endblock content %}
     </main>
     <script src="{% static 'js/store.js' %}"></script>
+    <script>
+        (function () {
+            var menuButton = document.getElementById("menu-toggle");
+            var nav = document.getElementById("topnav-links");
+            if (!menuButton || !nav) return;
+
+            menuButton.addEventListener("click", function () {
+                var isOpen = nav.classList.toggle("is-open");
+                menuButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
+            });
+
+            nav.querySelectorAll("a").forEach(function (link) {
+                link.addEventListener("click", function () {
+                    nav.classList.remove("is-open");
+                    menuButton.setAttribute("aria-expanded", "false");
+                });
+            });
+        })();
+    </script>
 </body>
 </html>
