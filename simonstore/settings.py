@@ -139,18 +139,13 @@ CLOUDINARY_STORAGE = {
     "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
 }
 
-if (
-    CLOUDINARY_STORAGE["CLOUD_NAME"]
-    and CLOUDINARY_STORAGE["API_KEY"]
-    and CLOUDINARY_STORAGE["API_SECRET"]
-):
-    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
-    cloudinary.config(
-        cloud_name=CLOUDINARY_STORAGE["CLOUD_NAME"],
-        api_key=CLOUDINARY_STORAGE["API_KEY"],
-        api_secret=CLOUDINARY_STORAGE["API_SECRET"],
-    )
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+)
 
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS", "")
 
