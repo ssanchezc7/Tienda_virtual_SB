@@ -38,7 +38,10 @@ SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-cambia-esto-en-produccion"
 
 DEBUG = env_bool("DEBUG", True)
 
-ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "127.0.0.1,localhost")
+ALLOWED_HOSTS = env_list(
+    "ALLOWED_HOSTS",
+    "127.0.0.1,localhost,.onrender.com"
+)
 
 
 INSTALLED_APPS = [
@@ -136,16 +139,18 @@ CLOUDINARY_STORAGE = {
     "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
 }
 
-DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
-
-cloudinary.config(
-    cloud_name=CLOUDINARY_STORAGE["CLOUD_NAME"],
-    api_key=CLOUDINARY_STORAGE["API_KEY"],
-    api_secret=CLOUDINARY_STORAGE["API_SECRET"],
-)
-
-if CLOUDINARY_STORAGE["API_KEY"] and CLOUDINARY_STORAGE["API_SECRET"]:
+if (
+    CLOUDINARY_STORAGE["CLOUD_NAME"]
+    and CLOUDINARY_STORAGE["API_KEY"]
+    and CLOUDINARY_STORAGE["API_SECRET"]
+):
     DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
+    cloudinary.config(
+        cloud_name=CLOUDINARY_STORAGE["CLOUD_NAME"],
+        api_key=CLOUDINARY_STORAGE["API_KEY"],
+        api_secret=CLOUDINARY_STORAGE["API_SECRET"],
+    )
 
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS", "")
 
