@@ -28,8 +28,8 @@ class Categoria(models.Model):
 class Tienda(models.Model):
     nombre = models.CharField(max_length=200)
     descripcion = models.TextField(blank=True)
-    logo = models.ImageField(upload_to="tiendas/", blank=True, null=True)
-    banner = models.ImageField(upload_to="tiendas/banner/", blank=True, null=True)
+    logo = CloudinaryField("logo", blank=True, null=True)
+    banner = CloudinaryField("banner", blank=True, null=True)
     vendedor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tiendas")
     whatsapp = models.CharField(max_length=20)
     ubicacion = models.CharField(max_length=120, blank=True)

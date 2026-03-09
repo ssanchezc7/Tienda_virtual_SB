@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
-
+from cloudinary.models import CloudinaryField
 
 class Perfil(models.Model):
     ROL_ADMIN = "administrador"
@@ -17,8 +17,8 @@ class Perfil(models.Model):
     rol = models.CharField(max_length=20, choices=ROLES, default=ROL_CLIENTE)
     nombre_publico = models.CharField(max_length=120, blank=True)
     telefono = models.CharField(max_length=30, blank=True)
-    foto_perfil = models.ImageField(upload_to="perfiles/", blank=True, null=True)
-    foto_portada = models.ImageField(upload_to="portadas/", blank=True, null=True)
+    foto_perfil = CloudinaryField("foto_perfil", blank=True, null=True)
+    foto_portada = CloudinaryField("foto_portada", blank=True, null=True)
     biografia = models.TextField(blank=True)
 
     def __str__(self) -> str:
