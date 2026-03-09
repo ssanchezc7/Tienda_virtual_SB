@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Tienda{% endblock title %}
+
+{% block content %}
+<section class="form-card">
+    <h2>{% if modo == 'crear' %}Nueva tienda{% else %}Editar tienda{% endif %}</h2>
+
+    <form method="post" enctype="multipart/form-data" class="producto-form">
+        {% csrf_token %}
+        {% if is_admin_role %}
+        <div class="field-group">
+            <label for="vendedor_id">Vendedor</label>
+            <select name="vendedor_id" id="vendedor_id">
+                <option value="">Selecciona vendedor</option>
+                {% for vendedor in vendedores %}
+                <option value="{{ vendedor.id }}" {% if tienda and tienda.vendedor_id == vendedor.id %}selected{% endif %}>
+                    {{ vendedor.username }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        {% for field in form %}
+        <div class="field-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.name == 'whatsapp' %}
+            <small class="help">Ingresa solo numeros con codigo de pais, por ejemplo: 5939XXXXXXXX.</small>
+            {% endif %}
+            {% if field.errors %}
+            <small class="error">{{ field.errors|striptags }}</small>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <div class="form-actions">
+            <a href="{% url 'productos:tiendas_gestion' %}" class="btn-secundario-link">Volver</a>
+            <button type="submit" class="btn-whatsapp">Guardar tienda</button>
+        </div>
+    </form>
+</section>
+{% endblock content %}

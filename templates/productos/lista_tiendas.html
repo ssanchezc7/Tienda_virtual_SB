@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load market_filters %}
+
+{% block title %}Marketplace | Tiendas{% endblock title %}
+
+{% block content %}
+<section class="form-card">
+    <h2>🔥 Tiendas populares</h2>
+    <div class="store-grid">
+        {% for tienda in populares %}
+        <article class="store-card">
+            {% if tienda.logo %}
+            <img src="{{ tienda.logo.url }}" alt="{{ tienda.nombre }}">
+            {% else %}
+            <div class="img-placeholder">Sin logo</div>
+            {% endif %}
+            <h3>{{ tienda.nombre }}</h3>
+            <p class="descripcion store-rating">{{ tienda.calificacion|stars }} <span>({{ tienda.calificacion }})</span></p>
+            <p class="descripcion">{{ tienda.descripcion|truncatechars:120 }}</p>
+            <p class="store-meta">Ventas: {{ tienda.total_ventas }} | Reputacion: {{ tienda.reputacion }}</p>
+            <a class="btn-admin" href="{% url 'productos:detalle_tienda' tienda.id %}">Entrar a tienda</a>
+        </article>
+        {% empty %}
+        <p>No hay tiendas activas por ahora.</p>
+        {% endfor %}
+    </div>
+</section>
+
+{% if user.is_authenticated and favoritas %}
+<section class="form-card">
+    <h2>⭐ Tus tiendas favoritas</h2>
+    <div class="favorite-strip">
+        {% for tienda in favoritas %}
+        <a class="favorite-chip" href="{% url 'productos:detalle_tienda' tienda.id %}">
+            <strong>{{ tienda.nombre }}</strong>
+            <span>{{ tienda.calificacion|stars }}</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section class="form-card">
+    <h2>🛍 Todas las tiendas</h2>
+    <ul class="list-plain">
+        {% for tienda in tiendas %}
+        <li>
+            <a href="{% url 'productos:detalle_tienda' tienda.id %}">{{ tienda.nombre }}</a>
+            <span class="descripcion">- {{ tienda.vendedor.username }} | {{ tienda.calificacion|stars }}</span>
+        </li>
+        {% empty %}
+        <li>No hay tiendas registradas.</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock content %}

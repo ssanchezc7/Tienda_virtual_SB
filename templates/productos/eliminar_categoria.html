@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar categoria{% endblock title %}
+
+{% block content %}
+<section class="form-card">
+    <h2>Eliminar categoria</h2>
+    <p>Vas a eliminar la categoria <strong>{{ categoria.nombre }}</strong>.</p>
+    <p class="form-help">Si esta categoria tiene productos asociados, el sistema bloqueara la eliminacion y te mostrara un aviso.</p>
+    <form method="post" class="producto-form">
+        {% csrf_token %}
+        <div class="form-actions">
+            <a href="{% url 'productos:categorias' %}" class="btn-secundario-link">Cancelar</a>
+            <button type="submit" class="btn-delete">Eliminar</button>
+        </div>
+    </form>
+</section>
+{% endblock content %}

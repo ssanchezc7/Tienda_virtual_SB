@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Categoria{% endblock title %}
+
+{% block content %}
+<section class="form-card">
+    <h2>{% if modo == 'crear' %}Nueva categoria{% else %}Editar categoria{% endif %}</h2>
+
+    <form method="post" class="producto-form">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="field-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+            <small class="error">{{ field.errors|striptags }}</small>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div class="form-actions">
+            <a href="{% url 'productos:categorias' %}" class="btn-secundario-link">Volver</a>
+            <button type="submit" class="btn-whatsapp">Guardar</button>
+        </div>
+    </form>
+</section>
+{% endblock content %}

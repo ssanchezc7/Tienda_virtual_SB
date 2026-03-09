@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Categorias{% endblock title %}
+
+{% block content %}
+<section class="form-card">
+    <h2>Gestion de categorias</h2>
+    <p><a class="btn-admin" href="{% url 'productos:crear_categoria' %}">+ Nueva categoria</a></p>
+
+    <ul class="list-plain">
+        {% for categoria in categorias %}
+        <li>
+            <strong>{{ categoria.nombre }}</strong>
+            {% if categoria.activo %}
+            <span class="tag-envio">Activa</span>
+            {% else %}
+            <span class="tag-inactivo">Inactiva</span>
+            {% endif %}
+            <a href="{% url 'productos:editar_categoria' categoria.id %}">Editar</a>
+            <a href="{% url 'productos:eliminar_categoria' categoria.id %}">Eliminar</a>
+        </li>
+        {% empty %}
+        <li>No hay categorias creadas.</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock content %}

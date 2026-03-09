@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestion de Productos{% endblock title %}
+
+{% block content %}
+<section class="admin-actions">
+    <a class="btn-admin" href="{% url 'productos:crear' %}">+ Agregar producto</a>
+</section>
+
+<section class="filtros">
+    <form method="get" class="filtros-form">
+        <input type="search" name="q" placeholder="Buscar producto..." value="{{ q }}">
+        <select name="categoria">
+            <option value="">Todas las categorías</option>
+            {% for categoria in categorias %}
+            <option value="{{ categoria.id }}" {% if categoria_actual == categoria.id|stringformat:'s' %}selected{% endif %}>
+                {{ categoria.nombre }}
+            </option>
+            {% endfor %}
+        </select>
+        <select name="estado">
+            <option value="todos" {% if estado_actual == 'todos' %}selected{% endif %}>Todos</option>
+            <option value="activos" {% if estado_actual == 'activos' %}selected{% endif %}>Activos</option>
+            <option value="inactivos" {% if estado_actual == 'inactivos' %}selected{% endif %}>Inactivos</option>
+        </select>
+        <button type="submit">Filtrar</button>
+    </form>
+</section>
+
+<section class="grid-productos">
+    {% for producto in productos %}
+    <article class="card-producto">
+        {% if producto.imagen %}
+        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+        {% else %}
+        <div class="img-placeholder">Sin imagen</div>
+        {% endif %}
+
+        <h3>{{ producto.nombre }}</h3>
+        <p class="descripcion"><strong>Tienda:</strong> {{ producto.tienda.nombre|default:'Sin tienda' }}</p>
+        <p class="descripcion">{{ producto.descripcion }}</p>
+
+        <div class="precio-wrap">
+            {% if producto.descuento > 0 %}
+            <p class="precio-anterior">${{ producto.precio }}</p>
+            <p class="precio">${{ producto.precio_final }}</p>
+            <span class="tag-descuento">🔥 -{{ producto.descuento }}%</span>
+            {% else %}
+            <p class="precio">${{ producto.precio }}</p>
+            {% endif %}
+        </div>
+
+        {% if producto.envio_gratis %}
+        <p class="tag-envio">🚚 Envío gratis</p>
+        {% endif %}
+
+        {% if can_manage_products and not producto.activo %}
+        <p class="tag-inactivo">Producto inactivo</p>
+        {% endif %}
+
+        <div class="producto-admin-actions">
+            <a class="btn-edit" href="{% url 'productos:editar' producto.id %}">Editar</a>
+            <a class="btn-delete-link" href="{% url 'productos:eliminar' producto.id %}">Eliminar</a>
+        </div>
+        <form method="post" action="{% url 'productos:toggle_activo' producto.id %}" class="toggle-form">
+            {% csrf_token %}
+            <input type="hidden" name="q" value="{{ q }}">
+            <input type="hidden" name="categoria" value="{{ categoria_actual }}">
+            <input type="hidden" name="estado" value="{{ estado_actual }}">
+            {% if producto.activo %}
+            <button type="submit" class="btn-toggle">Desactivar</button>
+            {% else %}
+            <button type="submit" class="btn-toggle btn-toggle-on">Activar</button>
+            {% endif %}
+        </form>
+    </article>
+    {% empty %}
+    <p>No hay productos disponibles por ahora.</p>
+    {% endfor %}
+</section>
+{% endblock content %}

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestion de vendedor{% endblock title %}
+
+{% block content %}
+<section class="form-card">
+    <h2>{% if modo == 'crear' %}Nuevo vendedor{% else %}Editar vendedor{% endif %}</h2>
+    <form method="post" enctype="multipart/form-data" class="producto-form">
+        {% csrf_token %}
+        {% if modo == 'crear' %}
+        {% for field in form %}
+        <div class="field-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+            <small class="error">{{ field.errors|striptags }}</small>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <h3>Datos de cuenta</h3>
+        {% for field in user_form %}
+        <div class="field-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+            <small class="error">{{ field.errors|striptags }}</small>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <h3>Perfil del vendedor</h3>
+        {% for field in perfil_form %}
+        <div class="field-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+            <small class="error">{{ field.errors|striptags }}</small>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% endif %}
+        <div class="form-actions">
+            <a href="{% url 'usuarios:lista' %}" class="btn-secundario-link">Volver</a>
+            <button type="submit" class="btn-whatsapp">Guardar</button>
+        </div>
+    </form>
+</section>
+{% endblock content %}

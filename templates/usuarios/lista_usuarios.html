@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestion de usuarios{% endblock title %}
+
+{% block content %}
+<section class="form-card">
+    <h2>Gestion de usuarios</h2>
+    <p><a class="btn-admin" href="{% url 'usuarios:crear_vendedor' %}">+ Crear vendedor</a></p>
+
+    <h3>Vendedores</h3>
+    <ul class="list-plain">
+        {% for perfil in vendedores %}
+        <li>
+            {{ perfil.user.username }} ({{ perfil.user.email }})
+            {% if perfil.nombre_publico %}
+            - Nombre publico: {{ perfil.nombre_publico }}
+            {% endif %}
+            {% if perfil.telefono %}
+            - Tel: {{ perfil.telefono }}
+            {% endif %}
+            <a href="{% url 'usuarios:editar_vendedor' perfil.user.id %}">Editar</a>
+            <a href="{% url 'usuarios:eliminar_vendedor' perfil.user.id %}">Eliminar</a>
+        </li>
+        {% empty %}
+        <li>No hay vendedores registrados.</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Clientes registrados</h3>
+    <ul class="list-plain">
+        {% for perfil in clientes %}
+        <li>{{ perfil.user.username }} ({{ perfil.user.email }})</li>
+        {% empty %}
+        <li>No hay clientes registrados.</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock content %}

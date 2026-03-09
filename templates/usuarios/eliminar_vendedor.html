@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar vendedor{% endblock title %}
+
+{% block content %}
+<section class="form-card">
+    <h2>Eliminar vendedor</h2>
+    <p>Vas a eliminar al vendedor <strong>{{ vendedor.username }}</strong>.</p>
+    <form method="post" class="producto-form">
+        {% csrf_token %}
+        <div class="form-actions">
+            <a href="{% url 'usuarios:lista' %}" class="btn-secundario-link">Cancelar</a>
+            <button type="submit" class="btn-delete">Eliminar</button>
+        </div>
+    </form>
+</section>
+{% endblock content %}

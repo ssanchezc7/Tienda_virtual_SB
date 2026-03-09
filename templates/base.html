@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Tienda Virtual{% endblock title %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <h1><a class="brand-link" href="{% url 'productos:home' %}">🛒 SimonStore</a></h1>
+            <nav class="topnav">
+                <a href="{% url 'productos:home' %}">Marketplace</a>
+                {% if user.is_authenticated %}
+                    {% if role_name == 'cliente' %}
+                    <a href="{% url 'usuarios:mis_pedidos' %}">Mis pedidos</a>
+                    {% endif %}
+                    {% if role_name == 'vendedor' %}
+                    <a href="{% url 'usuarios:mi_perfil_vendedor' %}">Mi perfil</a>
+                    {% endif %}
+                    {% if can_manage_products %}
+                    <a href="{% url 'productos:lista' %}">Productos</a>
+                    <a href="{% url 'productos:tiendas_gestion' %}">Tiendas</a>
+                    {% endif %}
+                    {% if is_admin_role %}
+                    <a href="{% url 'usuarios:lista' %}">Usuarios</a>
+                    <a href="{% url 'productos:categorias' %}">Categorias</a>
+                    {% endif %}
+                    <a href="{% url 'usuarios:logout' %}">Salir</a>
+                {% else %}
+                    <a href="{% url 'usuarios:login' %}">Iniciar sesion</a>
+                    <a href="{% url 'usuarios:registro' %}">Registrarse</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+    {% if messages %}
+    <section class="flash-wrap">
+        {% for message in messages %}
+        <p class="flash {{ message.tags }}">{{ message }}</p>
+        {% endfor %}
+    </section>
+    {% endif %}
+    <main class="container">
+        {% block content %}{% endblock content %}
+    </main>
+    <script src="{% static 'js/store.js' %}"></script>
+</body>
+</html>

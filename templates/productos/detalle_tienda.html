@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load market_filters %}
+
+{% block title %}{{ tienda.nombre }} | Tienda{% endblock title %}
+
+{% block content %}
+<section class="form-card">
+    <h2>{{ tienda.nombre }}</h2>
+    <p class="store-rating">{{ tienda.calificacion|stars }} <span>({{ tienda.calificacion }})</span></p>
+    <p class="descripcion">{{ tienda.descripcion }}</p>
+    <div class="store-metrics">
+        <span>Vendedor: {{ tienda.vendedor.username }}</span>
+        <span>Ventas: {{ tienda.total_ventas }}</span>
+        <span>Reputacion: {{ tienda.reputacion }}</span>
+    </div>
+
+    {% if user.is_authenticated %}
+    <form method="post" action="{% url 'productos:toggle_favorito' tienda.id %}" class="toggle-form">
+        {% csrf_token %}
+        {% if is_favorita %}
+        <button type="submit" class="btn-toggle">Quitar de favoritos</button>
+        {% else %}
+        <button type="submit" class="btn-toggle btn-toggle-on">Guardar en favoritos</button>
+        {% endif %}
+    </form>
+    {% endif %}
+</section>
+
+<section class="filtros">
+    <form method="get" class="filtros-form">
+        <input type="search" name="q" placeholder="Buscar producto..." value="{{ q }}">
+        <select name="categoria">
+            <option value="">Todas las categorias</option>
+            {% for categoria in categorias %}
+            <option value="{{ categoria.id }}" {% if categoria_actual == categoria.id|stringformat:'s' %}selected{% endif %}>{{ categoria.nombre }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Filtrar</button>
+    </form>
+</section>
+
+<section class="grid-productos">
+    {% for producto in productos %}
+    <article class="card-producto">
+        {% if producto.imagen %}
+        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+        {% else %}
+        <div class="img-placeholder">Sin imagen</div>
+        {% endif %}
+        <h3>{{ producto.nombre }}</h3>
+        <p class="descripcion">{{ producto.descripcion }}</p>
+        <p class="precio">${{ producto.precio_final }}</p>
+        <button
+            class="btn-agregar"
+            data-id="{{ producto.id }}"
+            data-nombre="{{ producto.nombre }}"
+            data-precio="{{ producto.precio_final }}"
+            data-store-id="{{ tienda.id }}"
+            data-store-name="{{ tienda.nombre }}"
+            data-whatsapp="{{ tienda.whatsapp }}">
+            Agregar al carrito
+        </button>
+    </article>
+    {% empty %}
+    <p>No hay productos disponibles en esta tienda.</p>
+    {% endfor %}
+</section>
+
+<aside
+    class="carrito"
+    data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"
+    data-role="{{ role_name }}"
+    data-save-order-url="{% url 'productos:guardar_pedido' %}">
+    <h2>Carrito</h2>
+    <ul id="lista-carrito"></ul>
+    <p class="total">Total: <strong id="total-carrito">$0.00</strong></p>
+    <div class="acciones-carrito">
+        <button id="vaciar-carrito" class="btn-secundario">Vaciar</button>
+        <button id="comprar-whatsapp" class="btn-whatsapp">Comprar por WhatsApp</button>
+    </div>
+</aside>
+
+{% if user.is_authenticated %}
+<section class="form-card">
+    <h2>Calificar tienda</h2>
+    <form method="post" action="{% url 'productos:crear_resena' tienda.id %}" class="producto-form">
+        {% csrf_token %}
+        {% for field in resena_form %}
+        <div class="field-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn-whatsapp">Guardar resena</button>
+    </form>
+
+    <h3>Resenas</h3>
+    <ul class="list-plain">
+        {% for resena in resenas %}
+        <li><strong>{{ resena.usuario.username }}</strong> - {{ resena.estrellas }} estrellas - {{ resena.comentario }}</li>
+        {% empty %}
+        <li>Sin resenas aun.</li>
+        {% endfor %}
+    </ul>
+</section>
+
+<section class="form-card">
+    <h2>Preguntas y comentarios</h2>
+    <form method="post" action="{% url 'productos:crear_consulta' tienda.id %}" class="producto-form">
+        {% csrf_token %}
+        {% for field in consulta_form %}
+        <div class="field-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn-whatsapp">Enviar consulta</button>
+    </form>
+
+    <ul class="list-plain">
+        {% for consulta in consultas %}
+        <li><strong>{{ consulta.usuario.username }}:</strong> {{ consulta.mensaje }}</li>
+        {% empty %}
+        <li>Aun no hay consultas.</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endif %}
+{% endblock content %}

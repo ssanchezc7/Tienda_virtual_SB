@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis pedidos{% endblock title %}
+
+{% block content %}
+<section class="form-card">
+    <h2>Historial de compras</h2>
+    {% for pedido in pedidos %}
+    <article class="pedido-card">
+        <p><strong>Pedido #{{ pedido.id }}</strong> - {{ pedido.fecha_creacion|date:'d/m/Y H:i' }}</p>
+        <p><strong>Tienda:</strong> {{ pedido.tienda.nombre|default:'No disponible' }}</p>
+        <ul>
+            {% for item in pedido.items.all %}
+            <li>{{ item.producto_nombre }} x{{ item.cantidad }} - ${{ item.subtotal }}</li>
+            {% endfor %}
+        </ul>
+        <p><strong>Total: ${{ pedido.total }}</strong></p>
+    </article>
+    {% empty %}
+    <p>Aun no tienes pedidos guardados.</p>
+    {% endfor %}
+</section>
+{% endblock content %}

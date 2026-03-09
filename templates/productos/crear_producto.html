@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Agregar Producto{% endblock title %}
+
+{% block content %}
+<section class="form-card">
+    <h2>Nuevo producto</h2>
+    <p class="form-help">Completa los campos para publicar un nuevo producto en la tienda.</p>
+
+    <form method="post" enctype="multipart/form-data" class="producto-form">
+        {% csrf_token %}
+
+        {% for field in form %}
+        <div class="field-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+            <small class="help">{{ field.help_text }}</small>
+            {% endif %}
+            {% if field.errors %}
+            <small class="error">{{ field.errors|striptags }}</small>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div class="form-actions">
+            <a href="{% url 'productos:lista' %}" class="btn-secundario-link">Volver</a>
+            <button type="submit" class="btn-whatsapp">Guardar producto</button>
+        </div>
+    </form>
+</section>
+{% endblock content %}

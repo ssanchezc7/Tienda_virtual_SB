@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi perfil de vendedor{% endblock title %}
+
+{% block content %}
+<section class="form-card">
+    <h2>Mi perfil de vendedor</h2>
+    <p class="form-help">Aqui puedes editar tu nombre, telefono, foto de perfil y portada.</p>
+
+    <form method="post" enctype="multipart/form-data" class="producto-form">
+        {% csrf_token %}
+
+        <h3>Cuenta</h3>
+        {% for field in user_form %}
+        <div class="field-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+            <small class="error">{{ field.errors|striptags }}</small>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <h3>Perfil publico</h3>
+        {% for field in perfil_form %}
+        <div class="field-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+            <small class="error">{{ field.errors|striptags }}</small>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div class="form-actions">
+            <a href="{% url 'productos:tiendas_gestion' %}" class="btn-secundario-link">Volver</a>
+            <button type="submit" class="btn-whatsapp">Guardar cambios</button>
+        </div>
+    </form>
+</section>
+{% endblock content %}

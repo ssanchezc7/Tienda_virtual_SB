@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestion de Tiendas{% endblock title %}
+
+{% block content %}
+<section class="form-card">
+    <h2>Gestion de tiendas</h2>
+    <p><a class="btn-admin" href="{% url 'productos:crear_tienda' %}">+ Nueva tienda</a></p>
+
+    <ul class="list-plain">
+        {% for tienda in tiendas %}
+        <li>
+            <strong>{{ tienda.nombre }}</strong> - {{ tienda.vendedor.username }} - {{ tienda.whatsapp }}
+            {% if tienda.activa %}
+            <span class="tag-envio">Activa</span>
+            {% else %}
+            <span class="tag-inactivo">Inactiva</span>
+            {% endif %}
+            <a href="{% url 'productos:editar_tienda' tienda.id %}">Editar</a>
+            <a href="{% url 'productos:eliminar_tienda' tienda.id %}">Eliminar</a>
+            <a href="{% url 'productos:detalle_tienda' tienda.id %}">Ver</a>
+            <form method="post" action="{% url 'productos:toggle_activa_tienda' tienda.id %}" class="inline-toggle-form">
+                {% csrf_token %}
+                {% if tienda.activa %}
+                <button type="submit" class="btn-toggle">Desactivar</button>
+                {% else %}
+                <button type="submit" class="btn-toggle btn-toggle-on">Activar</button>
+                {% endif %}
+            </form>
+        </li>
+        {% empty %}
+        <li>No hay tiendas registradas.</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock content %}
