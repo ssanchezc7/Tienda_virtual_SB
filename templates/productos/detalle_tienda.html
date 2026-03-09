@@ -7,6 +7,8 @@
 <section class="form-card">
     {% if tienda.banner %}
     <img class="store-banner" src="{{ tienda.banner.url }}" alt="Banner de {{ tienda.nombre }}">
+    {% else %}
+    <img class="store-banner" src="/static/img/no-image.svg" alt="Sin banner de tienda">
     {% endif %}
     <h2>{{ tienda.nombre }}</h2>
     <p class="store-rating">{{ tienda.calificacion|stars }} <span>({{ tienda.calificacion }})</span></p>

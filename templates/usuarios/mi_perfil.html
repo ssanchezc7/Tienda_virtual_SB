@@ -10,6 +10,8 @@
 
     {% if perfil.foto_perfil %}
     <img src="{{ perfil.foto_perfil.url }}" alt="Foto de perfil" class="profile-avatar">
+    {% else %}
+    <img src="/static/img/no-image.svg" alt="Sin foto de perfil" class="profile-avatar">
     {% endif %}
 
     <form method="post" enctype="multipart/form-data" class="producto-form">
