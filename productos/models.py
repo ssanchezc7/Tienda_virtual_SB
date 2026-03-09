@@ -1,8 +1,8 @@
 from decimal import Decimal
-
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from cloudinary.models import CloudinaryField
 
 
 class Categoria(models.Model):
@@ -74,9 +74,9 @@ class Producto(models.Model):
         blank=True,
         null=True,
     )
-    imagen = models.ImageField(upload_to="productos/", blank=True, null=True)
-    imagen_secundaria = models.ImageField(upload_to="productos/", blank=True, null=True)
-    imagen_detalle = models.ImageField(upload_to="productos/", blank=True, null=True)
+    imagen = CloudinaryField("imagen", blank=True, null=True)
+    imagen_secundaria = CloudinaryField("imagen_secundaria", blank=True, null=True)
+    imagen_detalle = CloudinaryField("imagen_detalle", blank=True, null=True)
     descripcion = models.TextField()
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     descuento = models.PositiveSmallIntegerField(default=0, help_text="Porcentaje 0-100")
