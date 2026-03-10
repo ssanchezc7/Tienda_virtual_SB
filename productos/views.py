@@ -382,26 +382,23 @@ def crear_producto(request):
     return render(request, "productos/crear_producto.html", {"form": form})
 
 
-@seller_or_admin_required
+@login_required
 def editar_producto(request, pk):
     producto = get_object_or_404(Producto, pk=pk)
-    if is_seller(request.user) and producto.vendedor_id != request.user.id:
-        messages.error(request, "Solo puedes editar tus propios productos.")
-        return redirect("productos:lista")
+
+    # Verificar que el usuario pueda editar el producto.
+    if not request.user.is_superuser:
+        vendedor_producto = producto.tienda.vendedor if producto.tienda else producto.vendedor
+        if vendedor_producto != request.user:
+            messages.error(request, "No tienes permiso para editar este producto.")
+            return redirect("productos:lista")
 
     if request.method == "POST":
         form = ProductoForm(request.POST, request.FILES, instance=producto, user=request.user)
         if form.is_valid():
-            try:
-                form.save()
-                messages.success(request, "Producto actualizado correctamente.")
-                return redirect("productos:lista")
-            except Exception as e:
-                print("ERROR AL GUARDAR PRODUCTO:", e)
-                messages.error(request, "Ocurrio un error al guardar el producto. Intenta nuevamente.")
-        else:
-            print("FORM ERRORS:", form.errors)
-            messages.error(request, "Revisa los campos del formulario.")
+            form.save()
+            messages.success(request, "Producto actualizado correctamente.")
+            return redirect("productos:lista")
     else:
         form = ProductoForm(instance=producto, user=request.user)
 
