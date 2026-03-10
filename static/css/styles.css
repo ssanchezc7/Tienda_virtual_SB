@@ -1448,3 +1448,339 @@ body {
 .ui-toast.is-error {
     background: #b91c1c;
 }
+
+.form-card-enhanced {
+    position: relative;
+    background: linear-gradient(160deg, #ffffff 0%, #f8fcff 45%, #f2fbf9 100%);
+    border: 1px solid #d7e4ef;
+    box-shadow: 0 20px 34px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+}
+
+.form-card-enhanced::before {
+    content: "";
+    position: absolute;
+    top: -80px;
+    right: -50px;
+    width: 240px;
+    height: 240px;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(20, 184, 166, 0.16) 0%, rgba(20, 184, 166, 0) 70%);
+    pointer-events: none;
+}
+
+.form-card-enhanced h2 {
+    margin-bottom: 6px;
+    font-size: 1.55rem;
+    letter-spacing: 0.01em;
+}
+
+.form-card-enhanced h3 {
+    margin: 6px 0 2px;
+    color: #0b4f49;
+}
+
+.producto-form-enhanced {
+    gap: 14px;
+}
+
+.producto-form-enhanced .field-group {
+    background: #ffffff;
+    border: 1px solid #e2ecf3;
+    border-radius: 12px;
+    padding: 10px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.producto-form-enhanced .field-group:focus-within {
+    border-color: #14b8a6;
+    box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.12);
+}
+
+.producto-form-enhanced label {
+    font-size: 0.83rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #0f766e;
+    font-weight: 800;
+}
+
+.producto-form-enhanced input,
+.producto-form-enhanced textarea,
+.producto-form-enhanced select {
+    background: #f9fcff;
+    border-color: #d6e4ee;
+}
+
+.producto-form-enhanced .help {
+    color: #475569;
+}
+
+.producto-form-enhanced .btn-whatsapp {
+    background: linear-gradient(135deg, #0f766e, #14b8a6);
+    box-shadow: 0 10px 24px rgba(13, 148, 136, 0.28);
+}
+
+.product-gallery {
+    display: grid;
+    gap: 8px;
+}
+
+.product-main-btn {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    cursor: zoom-in;
+    position: relative;
+}
+
+.product-main-btn .product-main-image {
+    width: 100%;
+    height: 180px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.zoom-hint {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    background: rgba(15, 23, 42, 0.78);
+    color: #fff;
+    border-radius: 999px;
+    padding: 4px 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.product-mini-gallery {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 2px;
+}
+
+.product-thumb {
+    border: 1px solid #d9e4ee;
+    border-radius: 9px;
+    padding: 0;
+    background: #fff;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.product-thumb img {
+    display: block;
+    width: 100%;
+    height: 72px;
+    object-fit: cover;
+}
+
+.product-thumb.is-active {
+    border-color: #0f766e;
+    box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.16);
+}
+
+.zoom-viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 140;
+    display: none;
+}
+
+.zoom-viewer.is-open {
+    display: grid;
+    place-items: center;
+}
+
+.zoom-viewer-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.72);
+    backdrop-filter: blur(3px);
+}
+
+.zoom-viewer-panel {
+    position: relative;
+    width: min(92vw, 900px);
+    max-height: 88vh;
+    background: #fff;
+    border-radius: 14px;
+    padding: 12px;
+    box-shadow: 0 24px 50px rgba(2, 6, 23, 0.42);
+}
+
+.zoom-viewer-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    border: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    background: #e2e8f0;
+    font-weight: 800;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.zoom-viewer-toolbar {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.zoom-viewer-title {
+    margin: 8px 0 0;
+    font-size: 0.96rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.zoom-viewer-counter {
+    display: inline-flex;
+    margin-left: 8px;
+    background: #0f172a;
+    color: #fff;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.zoom-viewer-tool {
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #0f172a;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.zoom-viewer-tool:hover,
+.zoom-viewer-tool:focus-visible {
+    border-color: #0f766e;
+    color: #0f766e;
+}
+
+.zoom-viewer-frame {
+    margin-top: 14px;
+    width: 100%;
+    height: min(74vh, 620px);
+    overflow: hidden;
+    border-radius: 10px;
+    background: #0f172a;
+    cursor: zoom-in;
+    position: relative;
+}
+
+.zoom-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.88);
+    color: #0f172a;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.zoom-nav-prev {
+    left: 10px;
+}
+
+.zoom-nav-next {
+    right: 10px;
+}
+
+.zoom-nav:hover,
+.zoom-nav:focus-visible {
+    background: #fff;
+    color: #0f766e;
+}
+
+.zoom-viewer-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transform: scale(var(--zoom-scale, 1));
+    transform-origin: center center;
+    opacity: 1;
+    transition: transform 0.14s ease, opacity 0.18s ease;
+}
+
+.zoom-viewer-image.is-switching {
+    opacity: 0.22;
+}
+
+.zoom-viewer-frame.is-zoomed {
+    cursor: move;
+}
+
+.zoom-viewer-frame.is-zoomed .zoom-viewer-image {
+    transform: scale(var(--zoom-scale, 2.2));
+}
+
+.zoom-viewer-thumbs {
+    margin-top: 10px;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+}
+
+.zoom-viewer-thumb {
+    flex: 0 0 auto;
+    width: 66px;
+    height: 48px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    padding: 0;
+    overflow: hidden;
+    cursor: pointer;
+    background: #fff;
+}
+
+.zoom-viewer-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.zoom-viewer-thumb.is-active {
+    border-color: #0f766e;
+    box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.16);
+}
+
+@media (max-width: 700px) {
+    .zoom-viewer-panel {
+        width: min(96vw, 900px);
+        padding: 10px;
+    }
+
+    .zoom-viewer-frame {
+        height: min(68vh, 520px);
+    }
+
+    .zoom-viewer-toolbar {
+        margin-top: 2px;
+    }
+
+    .zoom-nav {
+        width: 34px;
+        height: 34px;
+        font-size: 1.3rem;
+    }
+
+    .zoom-viewer-thumb {
+        width: 58px;
+        height: 42px;
+    }
+}

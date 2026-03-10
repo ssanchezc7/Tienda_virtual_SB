@@ -3,11 +3,11 @@
 {% block title %}Agregar Producto{% endblock title %}
 
 {% block content %}
-<section class="form-card">
+<section class="form-card form-card-enhanced">
     <h2>Nuevo producto</h2>
     <p class="form-help">Completa los campos para publicar un nuevo producto en la tienda.</p>
 
-    <form method="post" enctype="multipart/form-data" class="producto-form">
+    <form method="post" enctype="multipart/form-data" class="producto-form producto-form-enhanced">
         {% csrf_token %}
 
         {% for field in form %}

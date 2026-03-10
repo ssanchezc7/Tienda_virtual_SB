@@ -3,7 +3,7 @@
 {% block title %}Mi perfil{% endblock title %}
 
 {% block content %}
-<section class="form-card">
+<section class="form-card form-card-enhanced">
     <h2>Mi perfil</h2>
     <p class="form-help">Edita tu informacion personal, foto y descripcion.</p>
     <p class="form-help"><strong>ID:</strong> {{ user.id }} | <strong>Usuario:</strong> {{ user.username }}</p>
@@ -14,7 +14,7 @@
     <img src="/static/img/no-image.svg" alt="Sin foto de perfil" class="profile-avatar">
     {% endif %}
 
-    <form method="post" enctype="multipart/form-data" class="producto-form">
+    <form method="post" enctype="multipart/form-data" class="producto-form producto-form-enhanced">
         {% csrf_token %}
 
         <h3>Datos de cuenta</h3>

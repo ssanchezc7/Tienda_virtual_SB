@@ -66,17 +66,55 @@
 <section class="grid-productos">
     {% for producto in productos %}
     <article class="card-producto">
-        {% if producto.imagen %}
-        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
-        {% else %}
-        <div class="img-placeholder">Sin imagen</div>
-        {% endif %}
-        {% if producto.imagen_secundaria or producto.imagen_detalle %}
-        <div class="product-mini-gallery">
-            {% if producto.imagen_secundaria %}<img src="{{ producto.imagen_secundaria.url }}" alt="Imagen secundaria de {{ producto.nombre }}">{% endif %}
-            {% if producto.imagen_detalle %}<img src="{{ producto.imagen_detalle.url }}" alt="Detalle de {{ producto.nombre }}">{% endif %}
+        <div class="product-gallery" data-product-gallery>
+            {% if producto.imagen %}
+            <button type="button" class="product-main-btn" data-open-zoom aria-label="Ampliar imagen de {{ producto.nombre }}">
+                <img
+                    src="{{ producto.imagen.url }}"
+                    alt="{{ producto.nombre }}"
+                    class="product-main-image"
+                    data-main-image>
+                <span class="zoom-hint">Click para ampliar</span>
+            </button>
+            {% else %}
+            <div class="img-placeholder product-main-image">Sin imagen</div>
+            {% endif %}
+
+            {% if producto.imagen or producto.imagen_secundaria or producto.imagen_detalle %}
+            <div class="product-mini-gallery" role="tablist" aria-label="Imagenes de {{ producto.nombre }}">
+                {% if producto.imagen %}
+                <button
+                    type="button"
+                    class="product-thumb is-active"
+                    data-image-src="{{ producto.imagen.url }}"
+                    data-image-alt="{{ producto.nombre }}"
+                    aria-label="Ver imagen principal de {{ producto.nombre }}">
+                    <img src="{{ producto.imagen.url }}" alt="Miniatura principal de {{ producto.nombre }}">
+                </button>
+                {% endif %}
+                {% if producto.imagen_secundaria %}
+                <button
+                    type="button"
+                    class="product-thumb"
+                    data-image-src="{{ producto.imagen_secundaria.url }}"
+                    data-image-alt="Imagen secundaria de {{ producto.nombre }}"
+                    aria-label="Ver imagen secundaria de {{ producto.nombre }}">
+                    <img src="{{ producto.imagen_secundaria.url }}" alt="Imagen secundaria de {{ producto.nombre }}">
+                </button>
+                {% endif %}
+                {% if producto.imagen_detalle %}
+                <button
+                    type="button"
+                    class="product-thumb"
+                    data-image-src="{{ producto.imagen_detalle.url }}"
+                    data-image-alt="Detalle de {{ producto.nombre }}"
+                    aria-label="Ver detalle de {{ producto.nombre }}">
+                    <img src="{{ producto.imagen_detalle.url }}" alt="Detalle de {{ producto.nombre }}">
+                </button>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
         <h3>{{ producto.nombre }}</h3>
         <p class="descripcion">{{ producto.descripcion }}</p>
         {% if producto.stock is not None %}

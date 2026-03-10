@@ -3,10 +3,10 @@
 {% block title %}Tienda{% endblock title %}
 
 {% block content %}
-<section class="form-card">
+<section class="form-card form-card-enhanced">
     <h2>{% if modo == 'crear' %}Nueva tienda{% else %}Editar tienda{% endif %}</h2>
 
-    <form method="post" enctype="multipart/form-data" class="producto-form">
+    <form method="post" enctype="multipart/form-data" class="producto-form producto-form-enhanced">
         {% csrf_token %}
         {% if is_admin_role %}
         <div class="field-group">

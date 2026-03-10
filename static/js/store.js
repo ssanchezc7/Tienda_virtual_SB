@@ -309,6 +309,309 @@ const highlightAddedProductCard = (productId) => {
     }, 1200);
 };
 
+const getOrCreateZoomViewer = () => {
+    let viewer = document.getElementById("zoom-viewer");
+    if (viewer) {
+        return viewer;
+    }
+
+    viewer = document.createElement("div");
+    viewer.id = "zoom-viewer";
+    viewer.className = "zoom-viewer";
+    viewer.innerHTML = `
+        <div class="zoom-viewer-backdrop" data-zoom-close></div>
+        <div class="zoom-viewer-panel" role="dialog" aria-modal="true" aria-label="Vista ampliada de imagen">
+            <button type="button" class="zoom-viewer-close" data-zoom-close aria-label="Cerrar">x</button>
+            <div class="zoom-viewer-toolbar" aria-label="Controles de zoom">
+                <button type="button" class="zoom-viewer-tool" data-zoom-action="out" aria-label="Reducir zoom">-</button>
+                <button type="button" class="zoom-viewer-tool" data-zoom-action="in" aria-label="Aumentar zoom">+</button>
+                <button type="button" class="zoom-viewer-tool" data-zoom-action="reset" aria-label="Restablecer zoom">100%</button>
+            </div>
+            <p class="zoom-viewer-title" id="zoom-viewer-title"></p>
+            <div class="zoom-viewer-counter" id="zoom-viewer-counter" aria-live="polite"></div>
+            <div class="zoom-viewer-frame" id="zoom-viewer-frame">
+                <button type="button" class="zoom-nav zoom-nav-prev" data-zoom-nav="prev" aria-label="Imagen anterior">&#8249;</button>
+                <img class="zoom-viewer-image" id="zoom-viewer-image" alt="Imagen ampliada">
+                <button type="button" class="zoom-nav zoom-nav-next" data-zoom-nav="next" aria-label="Imagen siguiente">&#8250;</button>
+            </div>
+            <div class="zoom-viewer-thumbs" id="zoom-viewer-thumbs" aria-label="Miniaturas de imagen"></div>
+        </div>
+    `;
+    document.body.appendChild(viewer);
+
+    const frame = viewer.querySelector("#zoom-viewer-frame");
+    const image = viewer.querySelector("#zoom-viewer-image");
+    const title = viewer.querySelector("#zoom-viewer-title");
+    const counter = viewer.querySelector("#zoom-viewer-counter");
+    const thumbsWrap = viewer.querySelector("#zoom-viewer-thumbs");
+    let currentScale = 1;
+    let lastTapAt = 0;
+    let touchStartX = null;
+    let galleryItems = [];
+    let galleryIndex = 0;
+
+    const setZoom = (nextScale) => {
+        const safeScale = Math.min(4, Math.max(1, Number(nextScale) || 1));
+        currentScale = safeScale;
+        frame?.style.setProperty("--zoom-scale", String(safeScale));
+        frame?.classList.toggle("is-zoomed", safeScale > 1);
+        if (safeScale === 1 && image) {
+            image.style.transformOrigin = "center center";
+        }
+    };
+
+    const updateOriginFromPointer = (clientX, clientY) => {
+        if (!frame || !image || currentScale <= 1) {
+            return;
+        }
+        const rect = frame.getBoundingClientRect();
+        const x = ((clientX - rect.left) / rect.width) * 100;
+        const y = ((clientY - rect.top) / rect.height) * 100;
+        image.style.transformOrigin = `${x}% ${y}%`;
+    };
+
+    const renderGalleryImage = () => {
+        if (!image || !galleryItems.length) {
+            return;
+        }
+        const current = galleryItems[galleryIndex];
+        image.classList.add("is-switching");
+        image.src = current.src;
+        image.alt = current.alt || "Imagen ampliada";
+        image.style.transformOrigin = "center center";
+        window.setTimeout(() => {
+            image.classList.remove("is-switching");
+        }, 180);
+        if (title) {
+            title.textContent = current.title || current.alt || "Producto";
+        }
+        if (counter) {
+            counter.textContent = `${galleryIndex + 1}/${galleryItems.length}`;
+        }
+
+        if (thumbsWrap) {
+            thumbsWrap.querySelectorAll(".zoom-viewer-thumb").forEach((thumb, index) => {
+                thumb.classList.toggle("is-active", index === galleryIndex);
+            });
+        }
+    };
+
+    const renderThumbStrip = () => {
+        if (!thumbsWrap) {
+            return;
+        }
+        if (!galleryItems.length) {
+            thumbsWrap.innerHTML = "";
+            return;
+        }
+
+        thumbsWrap.innerHTML = galleryItems
+            .map(
+                (item, index) => `
+                <button
+                    type="button"
+                    class="zoom-viewer-thumb ${index === galleryIndex ? "is-active" : ""}"
+                    data-zoom-index="${index}"
+                    aria-label="Ver imagen ${index + 1}">
+                    <img src="${item.src}" alt="Miniatura ${index + 1}">
+                </button>
+            `
+            )
+            .join("");
+    };
+
+    const navigateGallery = (delta) => {
+        if (!galleryItems.length) {
+            return;
+        }
+        galleryIndex = (galleryIndex + delta + galleryItems.length) % galleryItems.length;
+        setZoom(1);
+        renderGalleryImage();
+    };
+
+    const closeViewer = () => {
+        viewer.classList.remove("is-open");
+        setZoom(1);
+        if (counter) {
+            counter.textContent = "";
+        }
+        if (title) {
+            title.textContent = "";
+        }
+    };
+
+    viewer.addEventListener("click", (event) => {
+        if (event.target.closest("[data-zoom-close]")) {
+            closeViewer();
+            return;
+        }
+
+        const actionButton = event.target.closest("[data-zoom-action]");
+        if (actionButton) {
+            const action = actionButton.dataset.zoomAction;
+            if (action === "in") {
+                setZoom(currentScale + 0.4);
+            } else if (action === "out") {
+                setZoom(currentScale - 0.4);
+            } else {
+                setZoom(1);
+            }
+            return;
+        }
+
+        const navButton = event.target.closest("[data-zoom-nav]");
+        if (navButton) {
+            navigateGallery(navButton.dataset.zoomNav === "next" ? 1 : -1);
+            return;
+        }
+
+        const jumpButton = event.target.closest("[data-zoom-index]");
+        if (jumpButton) {
+            const nextIndex = Number(jumpButton.dataset.zoomIndex);
+            if (Number.isFinite(nextIndex)) {
+                galleryIndex = Math.min(Math.max(0, nextIndex), galleryItems.length - 1);
+                setZoom(1);
+                renderGalleryImage();
+            }
+        }
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (!viewer.classList.contains("is-open")) {
+            return;
+        }
+
+        if (event.key === "Escape") {
+            closeViewer();
+        } else if (event.key === "ArrowRight") {
+            navigateGallery(1);
+        } else if (event.key === "ArrowLeft") {
+            navigateGallery(-1);
+        }
+    });
+
+    frame?.addEventListener("click", () => {
+        setZoom(currentScale > 1 ? 1 : 2.2);
+    });
+
+    frame?.addEventListener("mousemove", (event) => {
+        updateOriginFromPointer(event.clientX, event.clientY);
+    });
+
+    frame?.addEventListener(
+        "touchmove",
+        (event) => {
+            const touch = event.touches?.[0];
+            if (!touch) {
+                return;
+            }
+            updateOriginFromPointer(touch.clientX, touch.clientY);
+        },
+        { passive: true }
+    );
+
+    frame?.addEventListener("touchend", () => {
+        const now = Date.now();
+        if (now - lastTapAt < 320) {
+            setZoom(currentScale > 1 ? 1 : 2.2);
+            lastTapAt = 0;
+            return;
+        }
+        lastTapAt = now;
+    });
+
+    frame?.addEventListener("touchstart", (event) => {
+        const touch = event.touches?.[0];
+        touchStartX = touch ? touch.clientX : null;
+    });
+
+    frame?.addEventListener("touchend", (event) => {
+        const touch = event.changedTouches?.[0];
+        if (touchStartX === null || !touch) {
+            touchStartX = null;
+            return;
+        }
+        const deltaX = touch.clientX - touchStartX;
+        if (Math.abs(deltaX) > 45) {
+            navigateGallery(deltaX < 0 ? 1 : -1);
+        }
+        touchStartX = null;
+    });
+
+    setZoom(1);
+
+    viewer.open = (items, startIndex = 0) => {
+        galleryItems = Array.isArray(items) ? items.filter((item) => item?.src) : [];
+        if (!galleryItems.length) {
+            return;
+        }
+        galleryIndex = Math.min(Math.max(0, Number(startIndex) || 0), galleryItems.length - 1);
+        setZoom(1);
+        renderThumbStrip();
+        renderGalleryImage();
+        viewer.classList.add("is-open");
+    };
+
+    return viewer;
+};
+
+const openZoomViewer = (images, startIndex = 0) => {
+    if (!images || (Array.isArray(images) && !images.length)) {
+        return;
+    }
+    const viewer = getOrCreateZoomViewer();
+    const list = Array.isArray(images) ? images : [{ src: images, alt: "Imagen ampliada" }];
+    if (typeof viewer.open === "function") {
+        viewer.open(list, startIndex);
+    }
+};
+
+const initProductImageGalleries = () => {
+    const galleries = document.querySelectorAll("[data-product-gallery]");
+    galleries.forEach((gallery) => {
+        const mainImage = gallery.querySelector("[data-main-image]");
+        const mainButton = gallery.querySelector("[data-open-zoom]");
+        const productCard = gallery.closest(".card-producto, .producto-card");
+        const productTitle = productCard?.querySelector("h3")?.textContent?.trim() || "Producto";
+        const thumbs = gallery.querySelectorAll(".product-thumb");
+        const imageList = Array.from(thumbs)
+            .map((thumb) => ({
+                src: thumb.dataset.imageSrc,
+                alt: thumb.dataset.imageAlt || mainImage?.alt || "Imagen ampliada",
+                title: productTitle,
+            }))
+            .filter((entry) => entry.src);
+
+        thumbs.forEach((thumb) => {
+            thumb.addEventListener("click", () => {
+                const src = thumb.dataset.imageSrc;
+                const alt = thumb.dataset.imageAlt;
+                if (!mainImage || !src) {
+                    return;
+                }
+                mainImage.src = src;
+                mainImage.alt = alt || mainImage.alt;
+                thumbs.forEach((entry) => entry.classList.remove("is-active"));
+                thumb.classList.add("is-active");
+            });
+        });
+
+        if (mainButton && mainImage) {
+            mainButton.addEventListener("click", () => {
+                if (!imageList.length) {
+                    openZoomViewer([{ src: mainImage.src, alt: mainImage.alt || "Imagen ampliada", title: productTitle }], 0);
+                    return;
+                }
+                const currentIndex = Math.max(
+                    0,
+                    imageList.findIndex((item) => item.src === mainImage.src)
+                );
+                openZoomViewer(imageList, currentIndex);
+            });
+        }
+    });
+};
+
 const createWhatsAppMessage = () => {
     const cart = readCart();
 
@@ -483,4 +786,7 @@ document.addEventListener("click", (event) => {
     }
 });
 
-document.addEventListener("DOMContentLoaded", renderCart);
+document.addEventListener("DOMContentLoaded", () => {
+    renderCart();
+    initProductImageGalleries();
+});
