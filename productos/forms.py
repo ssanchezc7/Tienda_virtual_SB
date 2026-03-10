@@ -56,9 +56,17 @@ class ProductoForm(forms.ModelForm):
         )
 
         if user is not None and user.is_authenticated and not user.is_superuser:
-            perfil = getattr(user, "perfil", None)
-            if perfil and perfil.rol == "vendedor":
-                self.fields["tienda"].queryset = Tienda.objects.filter(vendedor=user, activa=True)
+           perfil = getattr(user, "perfil", None)
+
+           if perfil and perfil.rol == "vendedor":
+               qs = Tienda.objects.filter(vendedor=user, activa=True)
+
+               if self.instance and self.instance.pk and self.instance.tienda:
+                   qs = qs | Tienda.objects.filter(pk=self.instance.tienda.pk)
+
+               self.fields["tienda"].queryset = qs.distinct()
+        
+            
 
     def clean_imagen(self):
         return validate_image_file(self.cleaned_data.get("imagen"))
