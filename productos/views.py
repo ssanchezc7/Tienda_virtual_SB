@@ -392,10 +392,15 @@ def editar_producto(request, pk):
     if request.method == "POST":
         form = ProductoForm(request.POST, request.FILES, instance=producto, user=request.user)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Producto actualizado correctamente.")
-            return redirect("productos:lista")
-        messages.error(request, "Revisa los campos del formulario.")
+            try:
+                form.save()
+                messages.success(request, "Producto actualizado correctamente.")
+                return redirect("productos:lista")
+            except Exception as e:
+                print("ERROR AL GUARDAR PRODUCTO:", e)
+                raise e
+        else:
+            print("FORM ERRORS:", form.errors)
     else:
         form = ProductoForm(instance=producto, user=request.user)
 
