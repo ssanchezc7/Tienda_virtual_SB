@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import UploadedFile
 
 from .models import Categoria, ConsultaTienda, Producto, Resena, Tienda
 
@@ -11,12 +12,21 @@ def validate_image_file(image):
     if not image:
         return image
 
+    # En formularios de edicion, si no se sube una nueva imagen,
+    # Django puede devolver un FieldFile/CloudinaryResource existente.
+    # Solo validamos archivos realmente subidos en el request.
+    if not isinstance(image, UploadedFile):
+        return image
+
     content_type = getattr(image, "content_type", "")
     if content_type and content_type not in ALLOWED_IMAGE_TYPES:
         raise ValidationError("Formato de imagen no permitido. Usa JPG, PNG o WEBP.")
 
-    if image.size > MAX_IMAGE_SIZE:
-        raise ValidationError("La imagen supera 3MB. Reduce su tamaño e intenta nuevamente.")
+    try:
+        if image.size > MAX_IMAGE_SIZE:
+            raise ValidationError("La imagen supera 3MB. Reduce su tamaño e intenta nuevamente.")
+    except OSError:
+        raise ValidationError("No se pudo leer el archivo de imagen. Intenta subirlo nuevamente.")
 
     return image
 
