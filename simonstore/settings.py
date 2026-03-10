@@ -154,6 +154,7 @@ CSRF_TRUSTED_ORIGINS = env_list(
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # Configuracion de correo.
 # Para produccion configura SMTP por variables de entorno.
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
