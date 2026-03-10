@@ -398,9 +398,10 @@ def editar_producto(request, pk):
                 return redirect("productos:lista")
             except Exception as e:
                 print("ERROR AL GUARDAR PRODUCTO:", e)
-                raise e
+                messages.error(request, "Ocurrio un error al guardar el producto. Intenta nuevamente.")
         else:
             print("FORM ERRORS:", form.errors)
+            messages.error(request, "Revisa los campos del formulario.")
     else:
         form = ProductoForm(instance=producto, user=request.user)
 
