@@ -1784,3 +1784,95 @@ body {
         height: 42px;
     }
 }
+
+
+/* ===== FORMULARIO PRODUCTO MODERNO ===== */
+
+.form-card-enhanced {
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 35px;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.form-card-enhanced h2 {
+    margin-bottom: 5px;
+}
+
+.form-help {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 25px;
+}
+
+.producto-form-enhanced .field-group {
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+}
+
+.producto-form-enhanced label {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.producto-form-enhanced input,
+.producto-form-enhanced select,
+.producto-form-enhanced textarea {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    transition: border 0.2s, box-shadow 0.2s;
+}
+
+.producto-form-enhanced input:focus,
+.producto-form-enhanced select:focus,
+.producto-form-enhanced textarea:focus {
+    border-color: #0f766e;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(15,118,110,0.15);
+}
+
+.help {
+    font-size: 12px;
+    color: #777;
+}
+
+.error {
+    font-size: 12px;
+    color: #dc2626;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+}
+
+.btn-secundario-link {
+    padding: 10px 18px;
+    background: #e5e7eb;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #111;
+}
+
+.btn-secundario-link:hover {
+    background: #d1d5db;
+}
+
+.btn-whatsapp {
+    background: #0f766e;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn-whatsapp:hover {
+    background: #115e59;
+}
