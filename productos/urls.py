@@ -17,7 +17,6 @@ from .views import (
     eliminar_categoria,
     eliminar_tienda,
     eliminar_producto,
-    eliminar_resena,
     guardar_pedido,
     lista_categorias,
     lista_tiendas,
@@ -58,5 +57,4 @@ urlpatterns = [
     path("categorias/nueva/", crear_categoria, name="crear_categoria"),
     path("categorias/<int:pk>/editar/", editar_categoria, name="editar_categoria"),
     path("categorias/<int:pk>/eliminar/", eliminar_categoria, name="eliminar_categoria"),
-    path("resenas/<int:pk>/eliminar/", eliminar_resena, name="eliminar_resena"),
 ]

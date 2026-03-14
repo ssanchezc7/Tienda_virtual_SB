@@ -168,12 +168,6 @@
                 <p class="comment-bio">{{ resena.usuario.perfil.biografia|truncatechars:70 }}</p>
                 {% endif %}
                 <p>en {{ resena.tienda.nombre }}: {{ resena.estrellas }}★ - {{ resena.comentario|default:'Sin comentario' }}</p>
-                    {% if request.user.is_superuser or request.user|has_role:'administrador' or (request.user|has_role:'vendedor' and resena.tienda.vendedor_id == request.user.id) %}
-                    <form method="post" action="{% url 'productos:eliminar_resena' resena.id %}" style="display:inline">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-toggle btn-danger" onclick="return confirm('¿Eliminar esta reseña?')">Eliminar</button>
-                    </form>
-                    {% endif %}
             </div>
         </li>
         {% empty %}
