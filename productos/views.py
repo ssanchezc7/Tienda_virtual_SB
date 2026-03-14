@@ -814,3 +814,18 @@ def toggle_activa_tienda(request, pk):
     estado = "activada" if tienda.activa else "desactivada"
     messages.success(request, f"Tienda {estado}: {tienda.nombre}.")
     return redirect("productos:tiendas_gestion")
+
+
+@seller_or_admin_required
+@require_POST
+def eliminar_resena(request, pk):
+    resena = get_object_or_404(Resena, pk=pk)
+    # Solo admin o vendedor de la tienda pueden eliminar
+    es_admin = request.user.is_superuser or user_role(request.user) == "administrador"
+    es_vendedor = user_role(request.user) == "vendedor" and resena.tienda.vendedor_id == request.user.id
+    if not (es_admin or es_vendedor):
+        messages.error(request, "No tienes permiso para eliminar esta reseña.")
+        return redirect(request.META.get("HTTP_REFERER", "/"))
+    resena.delete()
+    messages.success(request, "Reseña eliminada correctamente.")
+    return redirect(request.META.get("HTTP_REFERER", "/"))
