@@ -177,6 +177,7 @@ def detalle_tienda(request, pk):
         "consultas": consultas,
         "resena_form": reseña_form,
         "consulta_form": consulta_form,
+        "feedback_next": request.get_full_path(),
         "ubicacion_maps_url": f"https://www.google.com/maps/search/?api=1&query={quote_plus(tienda.ubicacion)}" if tienda.ubicacion else "",
     }
     return render(request, "productos/detalle_tienda.html", context)
@@ -232,6 +233,46 @@ def crear_consulta(request, pk):
     else:
         messages.error(request, "Escribe una consulta valida.")
     return redirect("productos:detalle_tienda", pk=pk)
+
+
+def _puede_moderar_feedback(user, tienda):
+    return user.is_authenticated and (
+        user.is_superuser or user_role(user) == "administrador" or tienda.vendedor_id == user.id
+    )
+
+
+@seller_or_admin_required
+@require_POST
+def eliminar_resena(request, pk):
+    resena = get_object_or_404(Resena.objects.select_related("tienda"), pk=pk)
+    if not _puede_moderar_feedback(request.user, resena.tienda):
+        messages.error(request, "No tienes permiso para eliminar esta reseña.")
+        return redirect("productos:detalle_tienda", pk=resena.tienda_id)
+
+    tienda_id = resena.tienda_id
+    resena.delete()
+    tienda = Tienda.objects.filter(pk=tienda_id).first()
+    if tienda:
+        tienda.actualizar_metricas()
+    messages.success(request, "Reseña eliminada correctamente.")
+
+    next_url = request.POST.get("next")
+    return redirect(next_url or "productos:dashboard_vendedor")
+
+
+@seller_or_admin_required
+@require_POST
+def eliminar_consulta(request, pk):
+    consulta = get_object_or_404(ConsultaTienda.objects.select_related("tienda"), pk=pk)
+    if not _puede_moderar_feedback(request.user, consulta.tienda):
+        messages.error(request, "No tienes permiso para eliminar este comentario.")
+        return redirect("productos:detalle_tienda", pk=consulta.tienda_id)
+
+    consulta.delete()
+    messages.success(request, "Comentario eliminado correctamente.")
+
+    next_url = request.POST.get("next")
+    return redirect(next_url or "productos:dashboard_vendedor")
 
 
 @seller_or_admin_required
@@ -360,6 +401,7 @@ def dashboard_vendedor(request):
         "tienda_filtro": tienda_filtro,
         "pedido_query": pedido_query,
         "estado_filtro": estado_filtro,
+        "feedback_next": request.get_full_path(),
     }
     return render(request, "productos/dashboard_vendedor.html", context)
 

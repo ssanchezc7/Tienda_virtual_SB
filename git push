@@ -1,0 +1,33 @@
+[33m75c3033[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m Revert "Permitir eliminar reseñas desde el dashboard (admin/vendedor)"
+[33m9f39fb6[m[33m ([m[1;31morigin/master[m[33m)[m Permitir eliminar reseñas desde el dashboard (admin/vendedor)
+[33ma29714f[m nuevo diseño formulario producto
+[33m9da553b[m fix validacion imagen editar
+[33m976f9c8[m Fix editar_producto error handling to avoid 500
+[33m4b3fa3e[m Fix editar_producto error handling to avoid 500
+[33mc41b7b9[m debug error editar producto
+[33m91064dc[m fix formulario
+[33mbf2be4b[m fix debug production
+[33m2f2f233[m fix admin auto creation
+[33m03949d7[m fix csrf render
+[33m10aa088[m fix csrf trusted origins
+[33m5ad128c[m auto create admin
+[33mcfb8387[m ultima modificacion por aahora
+[33ma5b994a[m fix image handling
+[33m715d463[m profile images to cloudinary
+[33mf54eb14[m change images to cloudinary fields
+[33maea02a8[m apply migrations
+[33m15ccfdb[m fix cloudinary storage
+[33mff285f6[m Configurando Cloudinary
+[33ma567092[m actualizacion conf
+[33m6c3fdad[m fix psycopg version
+[33mb13557f[m fix postgres driver
+[33mb530a1b[m add postgres driver
+[33mdc85447[m Configurando Cloudinary
+[33maaeb309[m update psycopg version
+[33m93e694d[m fix postgres driver psycopg3
+[33m7595f84[m fix postgres driver
+[33me9caa69[m fix media render
+[33m68eab2f[m create admin script
+[33ma5cca71[m fix staticfiles for render
+[33m6f31197[m actualizacion del marketplace: mejoras en vendedores, categorias, correos y diseño
+[33md70b0d3[m primer commit

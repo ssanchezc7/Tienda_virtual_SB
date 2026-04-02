@@ -36,7 +36,7 @@ def env_list(name: str, default: str = "") -> list[str]:
 
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-cambia-esto-en-produccion")
 
-DEBUG = env_bool("DEBUG", False)
+DEBUG = env_bool("DEBUG", True)
 
 ALLOWED_HOSTS = env_list(
     "ALLOWED_HOSTS",

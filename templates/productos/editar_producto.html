@@ -3,33 +3,142 @@
 {% block title %}Editar Producto{% endblock title %}
 
 {% block content %}
-<section class="form-card">
-    <h2>Editar producto</h2>
-    <p class="form-help">Actualiza la información de <strong>{{ producto.nombre }}</strong>.</p>
+<section class="sp-wrap">
+    <article class="sp-card">
+        <header class="sp-header">
+            <div class="sp-header-left">
+                <span class="sp-header-icon" aria-hidden="true">▣</span>
+                <h1>Editar Producto</h1>
+            </div>
+            <nav class="sp-nav-links" aria-label="Navegacion rapida">
+                <a href="{% url 'productos:home' %}">SimonStore Marketplace</a>
+                <a href="{% url 'usuarios:mi_perfil' %}">Mi perfil ({{ user.username }})</a>
+                {% if role_name == 'vendedor' or is_admin_role %}
+                <a href="{% url 'productos:dashboard_vendedor' %}">Dashboard</a>
+                {% endif %}
+                <a href="{% url 'productos:lista' %}">Productos</a>
+                <a href="{% url 'productos:tiendas_gestion' %}">Tiendas</a>
+                <a href="{% url 'usuarios:logout' %}">Salir</a>
+            </nav>
+        </header>
 
-    <form method="post" enctype="multipart/form-data" class="producto-form">
-        {% csrf_token %}
+        <form method="post" enctype="multipart/form-data" class="sp-form">
+            {% csrf_token %}
 
-        {% for field in form %}
-        <div class="field-group">
-            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {{ field }}
-            {% if field.help_text %}
-            <small class="help">{{ field.help_text }}</small>
-            {% endif %}
-            {% if field.name == 'imagen' or field.name == 'imagen_secundaria' or field.name == 'imagen_detalle' %}
-            <small class="help">Formatos permitidos: JPG, PNG o WEBP. Tamano maximo: 3MB.</small>
-            {% endif %}
-            {% if field.errors %}
-            <small class="error">{{ field.errors|striptags }}</small>
-            {% endif %}
-        </div>
-        {% endfor %}
+            <div class="sp-form-body">
+                <p class="form-help">Actualiza la informacion de <strong>{{ producto.nombre }}</strong>.</p>
 
-        <div class="form-actions">
-            <a href="{% url 'productos:lista' %}" class="btn-secundario-link">Volver</a>
-            <button type="submit" class="btn-whatsapp">Guardar cambios</button>
-        </div>
-    </form>
+                {% if form.non_field_errors %}
+                <div class="sp-form-errors">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="sp-form-group">
+                    <label for="{{ form.nombre.id_for_label }}">Nombre del Producto</label>
+                    {{ form.nombre }}
+                    {% if form.nombre.errors %}<small class="error">{{ form.nombre.errors|striptags }}</small>{% endif %}
+                </div>
+
+                <div class="sp-images-grid">
+                    <div class="sp-image-col">
+                        <label for="{{ form.imagen.id_for_label }}">Imagen Principal</label>
+                        <div class="sp-upload-area">
+                            <label for="{{ form.imagen.id_for_label }}" class="sp-btn-upload">Subir Imagen</label>
+                            {{ form.imagen }}
+                            <span class="sp-upload-info">JPG, PNG o WEBP. Max 3MB</span>
+                        </div>
+                        {% if form.imagen.errors %}<small class="error">{{ form.imagen.errors|striptags }}</small>{% endif %}
+                    </div>
+                    <div class="sp-image-col">
+                        <label for="{{ form.imagen_secundaria.id_for_label }}">Imagen Secundaria</label>
+                        <div class="sp-upload-area">
+                            <label for="{{ form.imagen_secundaria.id_for_label }}" class="sp-btn-upload">Subir Imagen</label>
+                            {{ form.imagen_secundaria }}
+                            <span class="sp-upload-info">JPG, PNG o WEBP. Max 3MB</span>
+                        </div>
+                        {% if form.imagen_secundaria.errors %}<small class="error">{{ form.imagen_secundaria.errors|striptags }}</small>{% endif %}
+                    </div>
+                    <div class="sp-image-col">
+                        <label for="{{ form.imagen_detalle.id_for_label }}">Imagen Detalle</label>
+                        <div class="sp-upload-area">
+                            <label for="{{ form.imagen_detalle.id_for_label }}" class="sp-btn-upload">Subir Imagen</label>
+                            {{ form.imagen_detalle }}
+                            <span class="sp-upload-info">JPG, PNG o WEBP. Max 3MB</span>
+                        </div>
+                        {% if form.imagen_detalle.errors %}<small class="error">{{ form.imagen_detalle.errors|striptags }}</small>{% endif %}
+                    </div>
+                </div>
+
+                <div class="sp-form-group">
+                    <label for="{{ form.descripcion.id_for_label }}">Descripcion</label>
+                    {{ form.descripcion }}
+                    {% if form.descripcion.errors %}<small class="error">{{ form.descripcion.errors|striptags }}</small>{% endif %}
+                </div>
+
+                <div class="sp-row-pricing">
+                    <div class="sp-form-group sp-grow-1">
+                        <label for="{{ form.precio.id_for_label }}">Precio</label>
+                        <div class="sp-input-wrapper">
+                            <span class="sp-prefix">$</span>
+                            {{ form.precio }}
+                        </div>
+                        {% if form.precio.errors %}<small class="error">{{ form.precio.errors|striptags }}</small>{% endif %}
+                    </div>
+
+                    <div class="sp-form-group sp-grow-half">
+                        <label for="{{ form.descuento.id_for_label }}">Descuento</label>
+                        <div class="sp-input-wrapper">
+                            {{ form.descuento }}
+                            <span class="sp-suffix">%</span>
+                        </div>
+                        {% if form.descuento.errors %}<small class="error">{{ form.descuento.errors|striptags }}</small>{% endif %}
+                    </div>
+
+                    <div class="sp-form-group sp-checkbox-inline">
+                        <label class="sp-checkbox-row" for="{{ form.envio_gratis.id_for_label }}">
+                            {{ form.envio_gratis }}
+                            <span>Envio Gratis</span>
+                        </label>
+                        {% if form.envio_gratis.errors %}<small class="error">{{ form.envio_gratis.errors|striptags }}</small>{% endif %}
+                    </div>
+                </div>
+
+                <div class="sp-checkbox-group">
+                    <label for="{{ form.envio_gratis.id_for_label }}">Si, ofrecer envio gratuito</label>
+                </div>
+
+                <div class="sp-form-group sp-stock-group">
+                    <label for="{{ form.stock.id_for_label }}">Stock Disponible</label>
+                    {{ form.stock }}
+                    {% if form.stock.errors %}<small class="error">{{ form.stock.errors|striptags }}</small>{% endif %}
+                </div>
+
+                <div class="sp-form-group">
+                    <label for="{{ form.tienda.id_for_label }}">Tienda</label>
+                    {{ form.tienda }}
+                    {% if form.tienda.errors %}<small class="error">{{ form.tienda.errors|striptags }}</small>{% endif %}
+                </div>
+
+                <div class="sp-form-group">
+                    <label for="{{ form.categoria.id_for_label }}">Categoria</label>
+                    {{ form.categoria }}
+                    {% if form.categoria.errors %}<small class="error">{{ form.categoria.errors|striptags }}</small>{% endif %}
+                </div>
+
+                <div class="sp-toggle-container">
+                    <label class="sp-switch" for="{{ form.activo.id_for_label }}">
+                        {{ form.activo }}
+                        <span class="sp-slider"></span>
+                    </label>
+                    <span class="sp-toggle-text">Producto visible en la tienda</span>
+                    {% if form.activo.errors %}<small class="error">{{ form.activo.errors|striptags }}</small>{% endif %}
+                </div>
+            </div>
+
+            <footer class="sp-form-footer">
+                <a href="{% url 'productos:lista' %}" class="sp-btn sp-btn-cancel">Cancelar</a>
+                <button type="submit" class="sp-btn sp-btn-save">Guardar Cambios</button>
+            </footer>
+        </form>
+    </article>
 </section>
 {% endblock content %}

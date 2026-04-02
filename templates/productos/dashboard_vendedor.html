@@ -168,6 +168,13 @@
                 <p class="comment-bio">{{ resena.usuario.perfil.biografia|truncatechars:70 }}</p>
                 {% endif %}
                 <p>en {{ resena.tienda.nombre }}: {{ resena.estrellas }}★ - {{ resena.comentario|default:'Sin comentario' }}</p>
+                <div class="feedback-actions">
+                    <form method="post" action="{% url 'productos:eliminar_resena' resena.id %}" class="feedback-delete-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ feedback_next }}">
+                        <button type="submit" class="btn-delete-link">Eliminar reseña</button>
+                    </form>
+                </div>
             </div>
         </li>
         {% empty %}
@@ -192,6 +199,13 @@
                 <p class="comment-bio">{{ consulta.usuario.perfil.biografia|truncatechars:70 }}</p>
                 {% endif %}
                 <p>({{ consulta.tienda.nombre }}): {{ consulta.mensaje }}</p>
+                <div class="feedback-actions">
+                    <form method="post" action="{% url 'productos:eliminar_consulta' consulta.id %}" class="feedback-delete-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ feedback_next }}">
+                        <button type="submit" class="btn-delete-link">Eliminar comentario</button>
+                    </form>
+                </div>
             </div>
         </li>
         {% empty %}
