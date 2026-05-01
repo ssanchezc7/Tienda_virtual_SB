@@ -10,16 +10,7 @@
                 <span class="sp-header-icon" aria-hidden="true">▣</span>
                 <h1>Editar Producto</h1>
             </div>
-            <nav class="sp-nav-links" aria-label="Navegacion rapida">
-                <a href="{% url 'productos:home' %}">SimonStore Marketplace</a>
-                <a href="{% url 'usuarios:mi_perfil' %}">Mi perfil ({{ user.username }})</a>
-                {% if role_name == 'vendedor' or is_admin_role %}
-                <a href="{% url 'productos:dashboard_vendedor' %}">Dashboard</a>
-                {% endif %}
-                <a href="{% url 'productos:lista' %}">Productos</a>
-                <a href="{% url 'productos:tiendas_gestion' %}">Tiendas</a>
-                <a href="{% url 'usuarios:logout' %}">Salir</a>
-            </nav>
+            <!-- navegación removida para formulario de editar producto -->
         </header>
 
         <form method="post" enctype="multipart/form-data" class="sp-form">
@@ -44,7 +35,8 @@
                         <div class="sp-upload-area">
                             <label for="{{ form.imagen.id_for_label }}" class="sp-btn-upload">Subir Imagen</label>
                             {{ form.imagen }}
-                            <span class="sp-upload-info">JPG, PNG o WEBP. Max 3MB</span>
+                            <span class="sp-selected-filename">No se eligió ningún archivo</span>
+                            <span class="sp-upload-info">JPG, PNG, WEBP, GIF, MP4, WEBM. Máx 3MB</span>
                         </div>
                         {% if form.imagen.errors %}<small class="error">{{ form.imagen.errors|striptags }}</small>{% endif %}
                     </div>
@@ -53,7 +45,8 @@
                         <div class="sp-upload-area">
                             <label for="{{ form.imagen_secundaria.id_for_label }}" class="sp-btn-upload">Subir Imagen</label>
                             {{ form.imagen_secundaria }}
-                            <span class="sp-upload-info">JPG, PNG o WEBP. Max 3MB</span>
+                            <span class="sp-selected-filename">No se eligió ningún archivo</span>
+                            <span class="sp-upload-info">JPG, PNG, WEBP, GIF, MP4, WEBM. Máx 3MB</span>
                         </div>
                         {% if form.imagen_secundaria.errors %}<small class="error">{{ form.imagen_secundaria.errors|striptags }}</small>{% endif %}
                     </div>
@@ -62,7 +55,8 @@
                         <div class="sp-upload-area">
                             <label for="{{ form.imagen_detalle.id_for_label }}" class="sp-btn-upload">Subir Imagen</label>
                             {{ form.imagen_detalle }}
-                            <span class="sp-upload-info">JPG, PNG o WEBP. Max 3MB</span>
+                            <span class="sp-selected-filename">No se eligió ningún archivo</span>
+                            <span class="sp-upload-info">JPG, PNG, WEBP, GIF, MP4, WEBM. Máx 3MB</span>
                         </div>
                         {% if form.imagen_detalle.errors %}<small class="error">{{ form.imagen_detalle.errors|striptags }}</small>{% endif %}
                     </div>
@@ -141,4 +135,33 @@
         </form>
     </article>
 </section>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.sp-upload-area').forEach(function(area){
+        var input = area.querySelector('input[type="file"]');
+        var filenameSpan = area.querySelector('.sp-selected-filename');
+        if (!filenameSpan) {
+            filenameSpan = document.createElement('span');
+            filenameSpan.className = 'sp-selected-filename';
+            filenameSpan.textContent = 'No se eligió ningún archivo';
+            area.appendChild(filenameSpan);
+        }
+        if (!input) return;
+        if (input.files && input.files[0]) {
+            area.classList.add('selected');
+            filenameSpan.textContent = input.files[0].name;
+        }
+        input.addEventListener('change', function(){
+            var f = input.files && input.files[0];
+            if (f) {
+                area.classList.add('selected');
+                filenameSpan.textContent = f.name;
+            } else {
+                area.classList.remove('selected');
+                filenameSpan.textContent = 'No se eligió ningún archivo';
+            }
+        });
+    });
+});
+</script>
 {% endblock content %}

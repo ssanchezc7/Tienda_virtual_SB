@@ -292,11 +292,11 @@ const updateItemQuantity = (itemId, action) => {
 };
 
 const highlightAddedProductCard = (productId) => {
-    const cards = document.querySelectorAll(".card-producto");
+    const cards = document.querySelectorAll(".product-card");
     cards.forEach((card) => card.classList.remove("is-selected"));
 
     const btn = document.querySelector(`.btn-agregar[data-id="${productId}"]`);
-    const card = btn?.closest(".card-producto");
+    const card = btn?.closest(".product-card");
     if (!card || !btn) {
         return;
     }

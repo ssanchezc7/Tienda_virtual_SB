@@ -4,7 +4,7 @@
 {% block title %}{{ tienda.nombre }} | Tienda{% endblock title %}
 
 {% block content %}
-<section class="form-card">
+<section class="product-page-shell">
     {% if tienda.banner %}
     <img class="store-banner" src="{{ tienda.banner.url }}" alt="Banner de {{ tienda.nombre }}">
     {% else %}
@@ -59,87 +59,72 @@
             </option>
             {% endfor %}
         </select>
-        <button type="submit">Filtrar</button>
     </form>
-</section>
 
-<section class="grid-productos">
-    {% for producto in productos %}
-    <article class="card-producto">
-        <div class="product-gallery" data-product-gallery>
-            {% if producto.imagen %}
-            <button type="button" class="product-main-btn" data-open-zoom aria-label="Ampliar imagen de {{ producto.nombre }}">
-                <img
-                    src="{{ producto.imagen.url }}"
-                    alt="{{ producto.nombre }}"
-                    class="product-main-image"
-                    data-main-image>
-                <span class="zoom-hint">Click para ampliar</span>
-            </button>
-            {% else %}
-            <div class="img-placeholder product-main-image">Sin imagen</div>
-            {% endif %}
+    <section class="product-grid">
+        {% for producto in productos %}
+        <article class="product-card">
+            <div class="image-group">
+                {% if producto.descuento %}
+                <div class="discount-badge">-{{ producto.descuento }}%</div>
+                {% endif %}
 
-            {% if producto.imagen or producto.imagen_secundaria or producto.imagen_detalle %}
-            <div class="product-mini-gallery" role="tablist" aria-label="Imagenes de {{ producto.nombre }}">
+                <button class="favorite-btn" type="button" aria-label="Favorito">❤️</button>
+
                 {% if producto.imagen %}
-                <button
-                    type="button"
-                    class="product-thumb is-active"
-                    data-image-src="{{ producto.imagen.url }}"
-                    data-image-alt="{{ producto.nombre }}"
-                    aria-label="Ver imagen principal de {{ producto.nombre }}">
-                    <img src="{{ producto.imagen.url }}" alt="Miniatura principal de {{ producto.nombre }}">
-                </button>
+                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                {% else %}
+                <img src="/static/img/no-image.svg" alt="Sin imagen">
                 {% endif %}
-                {% if producto.imagen_secundaria %}
-                <button
-                    type="button"
-                    class="product-thumb"
-                    data-image-src="{{ producto.imagen_secundaria.url }}"
-                    data-image-alt="Imagen secundaria de {{ producto.nombre }}"
-                    aria-label="Ver imagen secundaria de {{ producto.nombre }}">
-                    <img src="{{ producto.imagen_secundaria.url }}" alt="Imagen secundaria de {{ producto.nombre }}">
-                </button>
-                {% endif %}
-                {% if producto.imagen_detalle %}
-                <button
-                    type="button"
-                    class="product-thumb"
-                    data-image-src="{{ producto.imagen_detalle.url }}"
-                    data-image-alt="Detalle de {{ producto.nombre }}"
-                    aria-label="Ver detalle de {{ producto.nombre }}">
-                    <img src="{{ producto.imagen_detalle.url }}" alt="Detalle de {{ producto.nombre }}">
-                </button>
+
+                {% if producto.descuento %}
+                <div class="limited-offer-badge">🔥 Oferta por tiempo limitado</div>
                 {% endif %}
             </div>
-            {% endif %}
-        </div>
-        <h3>{{ producto.nombre }}</h3>
-        <p class="descripcion">{{ producto.descripcion }}</p>
-        {% if producto.stock is not None %}
-        <p class="stock-note">Stock: {{ producto.stock }}</p>
-        {% endif %}
-        <p class="precio">${{ producto.precio_final }}</p>
-        {% if producto.stock == 0 %}
-        <span class="tag-inactivo">Agotado</span>
-        {% endif %}
-        <button
-            class="btn-agregar"
-            data-id="{{ producto.id }}"
-            data-nombre="{{ producto.nombre }}"
-            data-precio="{{ producto.precio_final }}"
-            data-stock="{{ producto.stock|default:'' }}"
-            data-store-id="{{ tienda.id }}"
-            data-store-name="{{ tienda.nombre }}"
-            data-whatsapp="{{ tienda.whatsapp }}"
-            {% if producto.stock == 0 %}disabled{% endif %}>
-            Agregar al carrito
-        </button>
-    </article>
-    {% empty %}
-    <p>No hay productos disponibles en esta tienda.</p>
-    {% endfor %}
+
+            <div class="product-info">
+                <h2 class="product-title">{{ producto.nombre }}</h2>
+                <div class="vendor-info">
+                    <span>{{ producto.tienda.nombre }}</span>
+                    <span class="rating">⭐ {{ producto.tienda.calificacion|default:0 }}</span>
+                </div>
+
+                <div class="price-group">
+                    <span class="current-price">${{ producto.precio_final }}</span>
+                    {% if producto.descuento %}
+                    <span class="old-price">${{ producto.precio }}</span>
+                    <span class="save-badge">Ahorras {{ producto.descuento }}%</span>
+                    {% endif %}
+                </div>
+
+                {% if producto.envio_gratis %}
+                <div class="shipping-details">
+                    <span class="free-shipping">🚚 Envío gratis</span>
+                    <span class="delivery-time">Recíbelo entre 3 - 7 días hábiles</span>
+                </div>
+                {% endif %}
+
+                <button
+                    class="cta-button btn-agregar"
+                    type="button"
+                    data-id="{{ producto.id }}"
+                    data-nombre="{{ producto.nombre }}"
+                    data-precio="{{ producto.precio_final }}"
+                    data-stock="{% if producto.stock %}{{ producto.stock }}{% else %}{% endif %}"
+                    data-store-id="{{ producto.tienda.id }}"
+                    data-store-name="{{ producto.tienda.nombre }}"
+                    data-whatsapp="{{ producto.tienda.whatsapp }}"
+                    aria-label="Agregar al carrito">
+                    🛒 Agregar al carrito
+                </button>
+            </div>
+
+            <!-- card footer removed per design request -->
+        </article>
+        {% empty %}
+        <p>No hay productos disponibles en esta tienda.</p>
+        {% endfor %}
+    </section>
 </section>
 
 <aside
@@ -167,14 +152,32 @@
 {% if user.is_authenticated %}
 <section class="form-card">
     <h2>Calificar tienda</h2>
-    <form method="post" action="{% url 'productos:crear_resena' tienda.id %}" class="producto-form">
+    <form method="post" action="{% url 'productos:crear_resena' tienda.id %}" class="producto-form review-form">
         {% csrf_token %}
+        
         {% for field in resena_form %}
-        <div class="field-group">
-            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {{ field }}
-        </div>
+            {% if field.name == "estrellas" %}
+            <div class="field-group star-rating-group">
+                <label>{{ field.label }}</label>
+                <div class="star-rating-container">
+                    {% for radio in field %}
+                        <label class="star-label" data-value="{{ radio.data.value }}">
+                            {{ radio.tag }}
+                            <span class="star-icon" aria-hidden="true">⭐</span>
+                        </label>
+                    {% endfor %}
+                </div>
+                {% if field.errors %}<small class="error">{{ field.errors|striptags }}</small>{% endif %}
+            </div>
+            {% else %}
+            <div class="field-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<small class="error">{{ field.errors|striptags }}</small>{% endif %}
+            </div>
+            {% endif %}
         {% endfor %}
+        
         <button type="submit" class="btn-whatsapp">Guardar resena</button>
     </form>
 
@@ -254,4 +257,58 @@
     </ul>
 </section>
 {% endif %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Star Rating Interactive Handler
+    const starLabels = document.querySelectorAll('.star-label');
+    
+    starLabels.forEach((label, index) => {
+        const input = label.querySelector('input[type="radio"]');
+        const value = parseInt(label.dataset.value, 10);
+        
+        label.addEventListener('click', function(e) {
+            input.checked = true;
+            updateStarDisplay(value);
+        });
+        
+        label.addEventListener('mouseenter', function() {
+            updateStarDisplay(value, true);
+        });
+        
+        label.addEventListener('mouseleave', function() {
+            const checked = document.querySelector('.star-label input[type="radio"]:checked');
+            if (checked) {
+                updateStarDisplay(parseInt(checked.parentElement.dataset.value, 10), false);
+            } else {
+                resetStarDisplay();
+            }
+        });
+        
+        label.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                input.checked = true;
+                updateStarDisplay(value);
+            }
+        });
+    });
+    
+    function updateStarDisplay(rating, isHovering = false) {
+        starLabels.forEach((label, index) => {
+            const value = parseInt(label.dataset.value, 10);
+            if (isHovering) {
+                label.style.opacity = value <= rating ? '1' : '0.5';
+            } else {
+                label.style.opacity = '1';
+            }
+        });
+    }
+    
+    function resetStarDisplay() {
+        starLabels.forEach(label => {
+            label.style.opacity = '1';
+        });
+    }
+});
+</script>
 {% endblock content %}

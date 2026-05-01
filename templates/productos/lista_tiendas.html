@@ -84,14 +84,29 @@
     <div class="recommended-grid">
         {% for producto in bloque.productos %}
         <article class="recommended-card">
-            {% if producto.imagen %}
-            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
-            {% else %}
-            <div class="img-placeholder">Sin imagen</div>
-            {% endif %}
+            <div class="image-group">
+                {% if producto.descuento %}
+                <div class="discount-badge">-{{ producto.descuento }}%</div>
+                {% endif %}
+
+                {% if producto.imagen %}
+                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                {% else %}
+                <div class="img-placeholder">Sin imagen</div>
+                {% endif %}
+
+                {% if producto.descuento %}
+                <div class="limited-offer-badge">🔥 Oferta</div>
+                {% endif %}
+            </div>
             <h3>{{ producto.nombre }}</h3>
             <p class="descripcion">{{ producto.tienda.nombre }}</p>
-            <p class="precio">${{ producto.precio_final }}</p>
+            <p class="precio">
+                <span class="current-price">${{ producto.precio_final }}</span>
+                {% if producto.descuento %}
+                    <span class="old-price">${{ producto.precio }}</span>
+                {% endif %}
+            </p>
             <a class="btn-admin" href="{% url 'productos:detalle_tienda' producto.tienda.id %}">Ver tienda</a>
         </article>
         {% endfor %}

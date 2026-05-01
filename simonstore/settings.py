@@ -36,7 +36,7 @@ def env_list(name: str, default: str = "") -> list[str]:
 
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-cambia-esto-en-produccion")
 
-DEBUG = env_bool("DEBUG", False)
+DEBUG = env_bool("DEBUG", True)
 
 ALLOWED_HOSTS = env_list(
     "ALLOWED_HOSTS",
@@ -133,19 +133,26 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-CLOUDINARY_STORAGE = {
-    "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
-    "API_KEY": os.getenv("CLOUDINARY_API_KEY"),
-    "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
-}
+_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
+_CLOUD_API_KEY = os.getenv("CLOUDINARY_API_KEY")
+_CLOUD_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
 
-DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+if _CLOUD_NAME and _CLOUD_API_KEY and _CLOUD_API_SECRET:
+    CLOUDINARY_STORAGE = {
+        "CLOUD_NAME": _CLOUD_NAME,
+        "API_KEY": _CLOUD_API_KEY,
+        "API_SECRET": _CLOUD_API_SECRET,
+    }
+    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
-cloudinary.config(
-    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
-    api_key=os.getenv("CLOUDINARY_API_KEY"),
-    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
-)
+    cloudinary.config(
+        cloud_name=_CLOUD_NAME,
+        api_key=_CLOUD_API_KEY,
+        api_secret=_CLOUD_API_SECRET,
+    )
+else:
+    # En desarrollo local sin credenciales de Cloudinary, usar almacenamiento local
+    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
 CSRF_TRUSTED_ORIGINS = env_list(
     "CSRF_TRUSTED_ORIGINS",

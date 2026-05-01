@@ -5,7 +5,7 @@ from django.core.files.uploadedfile import UploadedFile
 from .models import Categoria, ConsultaTienda, Producto, Resena, Tienda
 
 MAX_IMAGE_SIZE = 3 * 1024 * 1024
-ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
+ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm"}
 
 
 def validate_image_file(image):
@@ -20,7 +20,7 @@ def validate_image_file(image):
 
     content_type = getattr(image, "content_type", "")
     if content_type and content_type not in ALLOWED_IMAGE_TYPES:
-        raise ValidationError("Formato de imagen no permitido. Usa JPG, PNG o WEBP.")
+        raise ValidationError("Formato no permitido. Usa JPG, PNG, WEBP, GIF o videos MP4/WEBM.")
 
     try:
         if image.size > MAX_IMAGE_SIZE:
@@ -152,6 +152,15 @@ class ResenaForm(forms.ModelForm):
         widgets = {
             "comentario": forms.Textarea(attrs={"rows": 3, "placeholder": "Escribe tu comentario"}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Cambiar widget de estrellas a RadioSelect para selección visual
+        self.fields["estrellas"].widget = forms.RadioSelect(
+            choices=[(i, f"{i} {'⭐' * i}") for i in range(1, 6)]
+        )
+        self.fields["estrellas"].widget.attrs.update({"class": "star-rating-input"})
+        self.fields["estrellas"].label = "Calificacion"
 
 
 class ConsultaTiendaForm(forms.ModelForm):
