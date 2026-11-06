@@ -4,51 +4,68 @@
 {% block title %}{{ categoria.nombre }} | Categoria{% endblock title %}
 
 {% block content %}
-<section class="form-card">
-    <h2>{{ categoria.nombre }}</h2>
-    <p class="form-help">Productos encontrados: <strong>{{ total_productos }}</strong></p>
-
-    {% if subcategorias %}
-    <p class="form-help">Subcategorias:</p>
-    <div class="favorite-strip">
-        {% for sub in subcategorias %}
-        <span class="favorite-chip">{{ sub.nombre }}</span>
-        {% endfor %}
+<section class="category-hero">
+    <div class="category-icon">{{ categoria.nombre|category_icon }}</div>
+    <div class="category-hero-copy">
+        <p class="eyebrow">CATEGORÍA</p>
+        <h2>{{ categoria.nombre }}</h2>
+        <p class="form-help">Productos encontrados: <strong>{{ total_productos }}</strong></p>
     </div>
-    {% endif %}
-
-    <form method="get" class="filtros-form">
-        <select name="subcategoria">
-            <option value="" {% if not subcategoria_actual %}selected{% endif %}>Todas las subcategorias</option>
-            {% for sub in subcategorias %}
-            <option value="{{ sub.id }}" {% if subcategoria_actual == sub.id|stringformat:'s' %}selected{% endif %}>{{ sub.nombre }}</option>
-            {% endfor %}
-        </select>
-        <select name="orden">
-            <option value="recientes" {% if orden_actual == 'recientes' %}selected{% endif %}>Mas recientes</option>
-            <option value="baratos" {% if orden_actual == 'baratos' %}selected{% endif %}>Mas baratos</option>
-            <option value="caros" {% if orden_actual == 'caros' %}selected{% endif %}>Mas caros</option>
-            <option value="calificados" {% if orden_actual == 'calificados' %}selected{% endif %}>Mejor calificados</option>
-        </select>
-        <button type="submit">Aplicar</button>
-    </form>
+    <div class="category-tools">
+        {% if subcategorias %}
+        <div class="chips">
+            <label class="chip {% if not subcategoria_actual %}on{% endif %}"><input type="radio" name="subcategoria_chip" value="" {% if not subcategoria_actual %}checked{% endif %}>Todas</label>
+            {% for sub in subcategorias %}<label class="chip {% if subcategoria_actual == sub.id|stringformat:'s' %}on{% endif %}"><input type="radio" name="subcategoria_chip" value="{{ sub.id }}" {% if subcategoria_actual == sub.id|stringformat:'s' %}checked{% endif %}>{{ sub.nombre }}</label>{% endfor %}
+        </div>
+        {% endif %}
+        <form method="get" class="filtros-form">
+            <select name="subcategoria">
+                <option value="" {% if not subcategoria_actual %}selected{% endif %}>Todas las subcategorias</option>
+                {% for sub in subcategorias %}
+                <option value="{{ sub.id }}" {% if subcategoria_actual == sub.id|stringformat:'s' %}selected{% endif %}>{{ sub.nombre }}</option>
+                {% endfor %}
+            </select>
+            <select name="orden">
+                <option value="recientes" {% if orden_actual == 'recientes' %}selected{% endif %}>Mas recientes</option>
+                <option value="baratos" {% if orden_actual == 'baratos' %}selected{% endif %}>Mas baratos</option>
+                <option value="caros" {% if orden_actual == 'caros' %}selected{% endif %}>Mas caros</option>
+                <option value="calificados" {% if orden_actual == 'calificados' %}selected{% endif %}>Mejor calificados</option>
+            </select>
+        </form>
+    </div>
 </section>
 
-<section class="grid-productos">
+<section class="grid-productos market-product-grid">
     {% for producto in productos %}
-    <article class="card-producto">
-        {% if producto.imagen %}
-        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
-        {% else %}
-        <div class="img-placeholder">Sin imagen</div>
-        {% endif %}
-        <h3>{{ producto.nombre }}</h3>
-        <p class="descripcion">{{ producto.tienda.nombre }}</p>
-        <p class="precio">${{ producto.precio_final }}</p>
-        <a class="btn-admin" href="{% url 'productos:detalle_tienda' producto.tienda.id %}">Ver tienda</a>
+    <article class="p product-card" data-product-detail data-name="{{ producto.nombre }}" data-description="{{ producto.descripcion|default:'Producto seleccionado de SimonStore' }}" data-store="{{ producto.tienda.nombre }}" data-price="{{ producto.precio_final }}" data-old-price="{{ producto.precio }}" data-whatsapp="{{ producto.tienda.whatsapp }}" data-store-id="{{ producto.tienda.id }}">
+        <div class="pimg" data-open-product>
+            {% if producto.descuento %}<span class="tag">-{{ producto.descuento }}%</span>{% endif %}
+            {% if producto.imagen %}<img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" loading="lazy">{% else %}<span class="product-emoji">{{ producto.categoria.nombre|category_icon }}</span>{% endif %}
+            <button class="fav" type="button" aria-label="Favorito">♡</button>
+        </div>
+        <div class="pb">
+            <div class="pt" data-open-product>{{ producto.nombre }}</div>
+            <div class="ps">{{ producto.tienda.nombre }} · ★ {{ producto.tienda.calificacion|default:0 }}</div>
+            <div class="ship">🚚 Envío gratis</div>
+            <div class="pr"><div><span class="price">${{ producto.precio_final }}</span>{% if producto.descuento %}<span class="old">${{ producto.precio }}</span>{% endif %}</div>
+                <button class="add btn-agregar" type="button" data-id="{{ producto.id }}" data-nombre="{{ producto.nombre }}" data-precio="{{ producto.precio_final }}" data-stock="{% if producto.stock %}{{ producto.stock }}{% endif %}" data-store-id="{{ producto.tienda.id }}" data-store-name="{{ producto.tienda.nombre }}" data-whatsapp="{{ producto.tienda.whatsapp }}" aria-label="Agregar al carrito">+</button>
+            </div>
+        </div>
     </article>
     {% empty %}
     <p>No hay productos para esta categoria aun.</p>
     {% endfor %}
 </section>
+<script>
+document.querySelectorAll('select[name="orden"], input[name="subcategoria_chip"]').forEach(function (control) {
+    control.addEventListener('change', function () {
+        var form = document.querySelector('.category-tools .filtros-form');
+        if (control.name === 'subcategoria_chip') {
+            var select = document.querySelector('select[name="subcategoria"]');
+            if (select) select.value = control.value;
+        }
+        if (form) form.submit();
+    });
+});
+</script>
 {% endblock content %}

@@ -3,18 +3,28 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Tienda Virtual{% endblock title %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>{% block title %}SimonStore{% endblock title %}</title>
+    <meta name="theme-color" content="#0f766e">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
 <body>
     <header class="topbar">
-        <div class="topbar-inner">
-            <h1><a class="brand-link" href="{% url 'productos:home' %}">🛒 SimonStore</a></h1>
-            <button id="menu-toggle" class="menu-toggle" type="button" aria-expanded="false" aria-controls="topnav-links">
-                <span class="menu-icon">&#9776;</span>
-                <span>SimonStore</span>
-            </button>
+        <div class="topbar-inner market-header">
+            <h1 class="brand-mark"><a class="brand-link" href="{% url 'productos:home' %}"><span>🛒</span> SimonStore</a></h1>
+            <form class="global-search" action="{% url 'productos:home' %}" method="get">
+                <input type="search" name="tienda" value="{{ busqueda_tienda|default:'' }}" placeholder="Buscar productos o tiendas" aria-label="Buscar productos o tiendas">
+                <button type="submit">Buscar</button>
+            </form>
+            {% if user.is_authenticated %}
+            <a class="header-icon" href="{% url 'usuarios:mi_perfil' %}" aria-label="Mi cuenta"><span>{{ user.username|first|upper }}</span></a>
+            {% else %}
+            <a class="header-icon" href="{% url 'usuarios:login' %}" aria-label="Iniciar sesión">👤</a>
+            {% endif %}
+            <button class="header-icon cart-header-button" id="cart-header-button" type="button" aria-label="Abrir carrito">🛍️<b id="cart-header-count" class="badge">0</b></button>
             <nav id="topnav-links" class="topnav">
                 <a href="{% url 'productos:home' %}">Marketplace</a>
                 {% if menu_categorias %}
@@ -67,6 +77,9 @@
         {% endfor %}
     </section>
     {% endif %}
+    {% if request.path == '/' %}
+    <div class="promo-strip">🚚 Envío gratis · 🔥 Ofertas por tiempo limitado</div>
+    {% endif %}
     <main class="container">
         {% if request.path != '/' %}
         <div class="back-nav-wrap">
@@ -75,23 +88,89 @@
         {% endif %}
         {% block content %}{% endblock content %}
     </main>
+    <aside class="carrito" data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}" data-role="{{ role_name }}" data-save-order-url="{% url 'productos:guardar_pedido' %}">
+        <div class="cart-sheet-grab"></div>
+        <div class="cart-head"><h2>Tu carrito</h2><button id="cart-close" class="cart-close" type="button" aria-label="Cerrar carrito">×</button></div>
+        <div class="cart-saving" id="cart-saving">🎁 Envío gratis · Ahorra en tu pedido</div>
+        <ul id="lista-carrito"></ul>
+        <p class="total">Total <strong id="total-carrito">$0.00</strong></p>
+        <div class="acciones-carrito"><button id="vaciar-carrito" class="btn-secundario">Vaciar</button><button id="comprar-whatsapp" class="btn-whatsapp">Comprar por WhatsApp</button></div>
+    </aside>
+    <div class="cart-overlay" id="cart-overlay"></div>
+    <nav class="mobile-nav" aria-label="Navegación principal">
+        <a class="{% if request.path == '/' %}is-active{% endif %}" href="{% url 'productos:home' %}"><span>🏠</span>Inicio</a>
+        <button type="button" data-sheet-open="sheet-categorias"><span>🗂️</span>Categorías</button>
+        <a href="{% url 'productos:home' %}#tiendas"><span>🏪</span>Tiendas</a>
+        <button id="mobile-cart-link" type="button"><span>🛍️</span>Carrito <b id="cart-nav-count" class="badge">0</b></button>
+        <button type="button" data-sheet-open="sheet-cuenta"><span>👤</span>Cuenta</button>
+    </nav>
+    <div class="sheet-overlay" id="sheet-overlay"></div>
+    <section class="sheet" id="sheet-categorias" aria-label="Categorías">
+        <div class="cart-sheet-grab"></div>
+        <div class="sheet-head"><h2>Categorías</h2><button type="button" class="sheet-close" data-sheet-close aria-label="Cerrar">×</button></div>
+        <div class="sheet-grid">
+            {% for item in menu_categorias %}
+            <a href="{% url 'productos:detalle_categoria' item.slug %}">{{ item.nombre|category_icon }} {{ item.nombre }} ({{ item.total }})</a>
+            {% endfor %}
+        </div>
+    </section>
+    <section class="sheet" id="sheet-cuenta" aria-label="Cuenta">
+        <div class="cart-sheet-grab"></div>
+        <div class="sheet-head"><h2>{% if user.is_authenticated %}Hola, {{ user.username }}{% else %}Tu cuenta{% endif %}</h2><button type="button" class="sheet-close" data-sheet-close aria-label="Cerrar">×</button></div>
+        <div class="sheet-links">
+            {% if user.is_authenticated %}
+                <a href="{% url 'usuarios:mi_perfil' %}">👤 Mi perfil</a>
+                {% if role_name == 'cliente' %}<a href="{% url 'usuarios:mis_pedidos' %}">📦 Mis pedidos</a>{% endif %}
+                {% if role_name == 'vendedor' %}<a href="{% url 'productos:dashboard_vendedor' %}">📊 Dashboard</a>{% endif %}
+                {% if can_manage_products %}
+                <a href="{% url 'productos:lista' %}">🛍️ Productos</a>
+                <a href="{% url 'productos:tiendas_gestion' %}">🏪 Tiendas</a>
+                {% endif %}
+                {% if is_admin_role %}
+                <a href="{% url 'usuarios:lista' %}">👥 Usuarios</a>
+                <a href="{% url 'productos:categorias' %}">🗂️ Categorías</a>
+                {% endif %}
+                <a href="{% url 'usuarios:logout' %}">🚪 Salir</a>
+            {% else %}
+                <a href="{% url 'usuarios:login' %}">🔑 Iniciar sesión</a>
+                <a href="{% url 'usuarios:registro' %}">✨ Registrarse</a>
+            {% endif %}
+        </div>
+    </section>
     <script src="{% static 'js/store.js' %}"></script>
     <script>
         (function () {
-            var menuButton = document.getElementById("menu-toggle");
-            var nav = document.getElementById("topnav-links");
-            if (!menuButton || !nav) return;
-
-            menuButton.addEventListener("click", function () {
-                var isOpen = nav.classList.toggle("is-open");
-                menuButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
+            var toggle = document.getElementById("theme-toggle");
+            if (!toggle) return;
+            var saved = localStorage.getItem("simonstore-theme");
+            if (saved) document.documentElement.dataset.theme = saved;
+            toggle.addEventListener("click", function () {
+                var next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+                document.documentElement.dataset.theme = next;
+                localStorage.setItem("simonstore-theme", next);
             });
-
-            nav.querySelectorAll("a").forEach(function (link) {
-                link.addEventListener("click", function () {
-                    nav.classList.remove("is-open");
-                    menuButton.setAttribute("aria-expanded", "false");
+        })();
+        (function () {
+            var ov = document.getElementById("sheet-overlay");
+            function closeAll() {
+                document.querySelectorAll(".sheet.is-open").forEach(function (sheet) {
+                    sheet.classList.remove("is-open");
                 });
+                ov.classList.remove("is-open");
+            }
+            document.querySelectorAll("[data-sheet-open]").forEach(function (button) {
+                button.addEventListener("click", function () {
+                    closeAll();
+                    document.getElementById(button.dataset.sheetOpen).classList.add("is-open");
+                    ov.classList.add("is-open");
+                });
+            });
+            document.querySelectorAll("[data-sheet-close]").forEach(function (button) {
+                button.addEventListener("click", closeAll);
+            });
+            ov.addEventListener("click", closeAll);
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Escape") closeAll();
             });
         })();
     </script>

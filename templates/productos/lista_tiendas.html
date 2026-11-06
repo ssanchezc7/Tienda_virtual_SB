@@ -4,8 +4,29 @@
 {% block title %}Marketplace | Tiendas{% endblock title %}
 
 {% block content %}
-<section class="form-card home-section">
-    <h2>Buscar tienda</h2>
+<section class="hero-market">
+    <div>
+        <p class="eyebrow">SIMONSTORE MARKETPLACE</p>
+        <h2>Ofertas que te encantan</h2>
+        <p>Descubre tiendas de tu comunidad y compra en minutos.</p>
+        <a class="hero-cta" href="#tiendas">Ver tiendas</a>
+    </div>
+    <span class="hero-emoji" aria-hidden="true">🧸</span>
+</section>
+
+<div class="steps">
+    <div><b>1.</b> Toca un producto</div>
+    <div><b>2.</b> Pulsa <b>+</b> para agregar</div>
+    <div><b>3.</b> Termina por WhatsApp</div>
+</div>
+
+<section class="guest-banner">
+    <span>👋 Inicia sesión para guardar tus pedidos y favoritos</span>
+    <a href="{% url 'usuarios:login' %}">Ingresar</a>
+    <a class="soft" href="{% url 'usuarios:registro' %}">Registrarse</a>
+</section>
+
+<section class="market-search">
     <form method="get" class="filtros-form">
         <input id="tienda-search-input" type="search" name="tienda" placeholder="Buscar por nombre o descripcion..." value="{{ busqueda_tienda }}">
         <button type="submit">Buscar</button>
@@ -13,21 +34,17 @@
     <p id="tienda-search-status" class="search-status is-hidden">No se encontraron tiendas con ese criterio.</p>
 </section>
 
-<section class="form-card home-section">
-    <h2>🔥 Tiendas populares</h2>
+<section id="tiendas" class="market-section">
+    <div class="section-heading"><h2>Tiendas populares</h2><span>Desliza →</span></div>
     <div class="store-grid">
         {% for tienda in populares %}
         <article class="store-card searchable-store" data-store-search="{{ tienda.nombre|lower }} {{ tienda.descripcion|lower }} {{ tienda.vendedor.username|lower }}">
-            {% if tienda.logo %}
-            <img src="{{ tienda.logo.url }}" alt="{{ tienda.nombre }}">
-            {% else %}
-            <div class="img-placeholder">Sin logo</div>
-            {% endif %}
+            {% if tienda.logo %}<img src="{{ tienda.logo.url }}" alt="{{ tienda.nombre }}">{% else %}<div class="store-avatar">🏪</div>{% endif %}
             <h3>{{ tienda.nombre }}</h3>
             <p class="descripcion store-rating">{{ tienda.calificacion|stars }} <span>({{ tienda.calificacion }})</span></p>
             <p class="descripcion">{{ tienda.descripcion|truncatechars:120 }}</p>
-            <p class="store-meta">Ventas: {{ tienda.total_ventas }} | Reputacion: {{ tienda.reputacion }}</p>
-            <a class="btn-admin" href="{% url 'productos:detalle_tienda' tienda.id %}">Entrar a tienda</a>
+            <p class="store-meta">{{ tienda.total_ventas }} ventas · {{ tienda.reputacion }} reputación</p>
+            <a class="store-visit" href="{% url 'productos:detalle_tienda' tienda.id %}">Visitar tienda</a>
         </article>
         {% empty %}
         <p>No hay tiendas activas por ahora.</p>
@@ -49,8 +66,8 @@
 </section>
 {% endif %}
 
-<section class="form-card home-section">
-    <h2>🛍 Todas las tiendas</h2>
+<section class="market-section all-stores">
+    <div class="section-heading"><h2>Todas las tiendas</h2></div>
     <ul class="list-plain">
         {% for tienda in tiendas %}
         <li class="searchable-store" data-store-search="{{ tienda.nombre|lower }} {{ tienda.descripcion|lower }} {{ tienda.vendedor.username|lower }}">
@@ -64,55 +81,44 @@
 </section>
 
 {% if categorias_inicio %}
-<section class="form-card home-section">
-    <h2>Categorias</h2>
-    <div class="categories-grid">
+<section id="categorias" class="market-section">
+    <div class="section-heading"><h2>Categorías</h2></div>
+    <div class="chips">
+        <a class="chip on" href="{% url 'productos:home' %}">✨ Todas</a>
         {% for item in categorias_inicio %}
-        <a class="category-card" href="{% url 'productos:detalle_categoria' item.slug %}">
-            <strong>{{ item.categoria.nombre|category_icon }} {{ item.categoria.nombre }}</strong>
-            <span>{{ item.total }} productos</span>
-        </a>
+        <a class="chip" href="{% url 'productos:detalle_categoria' item.slug %}">{{ item.categoria.nombre|category_icon }} {{ item.categoria.nombre }} <small>({{ item.total }})</small></a>
         {% endfor %}
     </div>
 </section>
 {% endif %}
 
 {% if categorias_destacadas %}
-{% for bloque in categorias_destacadas %}
-<section class="form-card home-section">
-    <h2>{{ bloque.categoria.nombre|category_icon }} Recomendados</h2>
-    <div class="recommended-grid">
+<section class="market-section">
+    <div class="section-heading"><h2>Recomendados para ti</h2></div>
+    <div class="market-product-grid grid">
+        {% for bloque in categorias_destacadas %}
         {% for producto in bloque.productos %}
-        <article class="recommended-card">
-            <div class="image-group">
+        <article class="p product-card" data-product-detail data-name="{{ producto.nombre }}" data-description="{{ producto.descripcion|default:'Producto seleccionado de SimonStore' }}" data-store="{{ producto.tienda.nombre }}" data-price="{{ producto.precio_final }}" data-old-price="{{ producto.precio }}" data-whatsapp="{{ producto.tienda.whatsapp }}" data-store-id="{{ producto.tienda.id }}">
+            <div class="pimg" data-open-product>
                 {% if producto.descuento %}
-                <div class="discount-badge">-{{ producto.descuento }}%</div>
+                <span class="tag">-{{ producto.descuento }}%</span>
                 {% endif %}
-
-                {% if producto.imagen %}
-                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
-                {% else %}
-                <div class="img-placeholder">Sin imagen</div>
-                {% endif %}
-
-                {% if producto.descuento %}
-                <div class="limited-offer-badge">🔥 Oferta</div>
-                {% endif %}
+                {% if producto.imagen %}<img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" loading="lazy">{% else %}<span class="product-emoji">{{ producto.categoria.nombre|category_icon }}</span>{% endif %}
+                <button class="fav" type="button" aria-label="Favorito">♡</button>
             </div>
-            <h3>{{ producto.nombre }}</h3>
-            <p class="descripcion">{{ producto.tienda.nombre }}</p>
-            <p class="precio">
-                <span class="current-price">${{ producto.precio_final }}</span>
-                {% if producto.descuento %}
-                    <span class="old-price">${{ producto.precio }}</span>
-                {% endif %}
-            </p>
-            <a class="btn-admin" href="{% url 'productos:detalle_tienda' producto.tienda.id %}">Ver tienda</a>
+            <div class="pb">
+                <div class="pt" data-open-product>{{ producto.nombre }}</div>
+                <div class="ps">{{ producto.tienda.nombre }} · ★ {{ producto.tienda.calificacion|default:0 }}</div>
+                <div class="ship">🚚 Envío gratis</div>
+                <div class="pr"><div><span class="price">${{ producto.precio_final }}</span>{% if producto.descuento %}<span class="old">${{ producto.precio }}</span>{% endif %}</div>
+                    <button class="add btn-agregar" type="button" data-id="{{ producto.id }}" data-nombre="{{ producto.nombre }}" data-precio="{{ producto.precio_final }}" data-stock="{% if producto.stock %}{{ producto.stock }}{% endif %}" data-store-id="{{ producto.tienda.id }}" data-store-name="{{ producto.tienda.nombre }}" data-whatsapp="{{ producto.tienda.whatsapp }}" aria-label="Agregar al carrito">+</button>
+                </div>
+            </div>
         </article>
+        {% endfor %}
         {% endfor %}
     </div>
 </section>
-{% endfor %}
 {% endif %}
 
 <script>

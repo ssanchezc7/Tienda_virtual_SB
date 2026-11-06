@@ -12,7 +12,12 @@ const showToast = (message, type = "info") => {
         document.body.appendChild(toast);
     }
 
-    toast.textContent = message;
+    toast.textContent = `${type === "success" ? "✅ " : ""}${message}`;
+    const cartLink = document.createElement("button");
+    cartLink.type = "button";
+    cartLink.dataset.openCart = "";
+    cartLink.textContent = "Ver carrito";
+    toast.append(" ", cartLink);
     toast.className = `ui-toast is-visible is-${type}`;
 
     if (toastTimerId) {
@@ -25,22 +30,81 @@ const showToast = (message, type = "info") => {
 };
 
 const setCartFabCount = (items) => {
-    const countEl = document.getElementById("cart-fab-count");
-    if (!countEl) {
-        return;
-    }
     const totalItems = items.reduce((acc, item) => acc + (Number(item.cantidad) || 0), 0);
-    countEl.textContent = String(totalItems);
+    ["cart-header-count", "cart-nav-count"].forEach((id) => {
+        const countEl = document.getElementById(id);
+        if (countEl) {
+            countEl.textContent = String(totalItems);
+            countEl.hidden = totalItems === 0;
+            countEl.classList.remove("bump");
+            void countEl.offsetWidth;
+            countEl.classList.add("bump");
+        }
+    });
 };
 
 const closeMobileCart = () => {
     const box = document.querySelector(".carrito");
     box?.classList.remove("is-open");
+    document.getElementById("cart-overlay")?.classList.remove("is-open");
 };
 
 const toggleMobileCart = () => {
     const box = document.querySelector(".carrito");
-    box?.classList.toggle("is-open");
+    if (!box) return;
+    const isOpen = box.classList.toggle("is-open");
+    document.getElementById("cart-overlay")?.classList.toggle("is-open", isOpen);
+};
+
+window.openCart = () => {
+    renderCart();
+    const box = document.querySelector(".carrito");
+    if (!box) return;
+    box.classList.add("is-open");
+    document.getElementById("cart-overlay")?.classList.add("is-open");
+};
+
+const openProductSheet = (card) => {
+    if (!card) return;
+    let sheet = document.getElementById("product-sheet");
+    if (!sheet) {
+        sheet = document.createElement("aside");
+        sheet.id = "product-sheet";
+        sheet.className = "product-sheet";
+        sheet.innerHTML = `
+            <div class="sheet-grab"></div>
+            <button class="sheet-close" type="button" data-close-product aria-label="Cerrar">×</button>
+            <div class="sheet-image" id="sheet-image"></div>
+            <div class="sheet-body">
+                <p class="eyebrow">DETALLE DEL PRODUCTO</p>
+                <h2 id="sheet-name"></h2>
+                <p class="sheet-store" id="sheet-store"></p>
+                <p class="sheet-description" id="sheet-description"></p>
+                <div class="sheet-price"><strong id="sheet-price"></strong><del id="sheet-old-price"></del></div>
+                <button class="btn-whatsapp sheet-add" id="sheet-add" type="button">Agregar al carrito</button>
+            </div>`;
+        document.body.appendChild(sheet);
+    }
+    const image = card.querySelector(".pimg img");
+    const product = {
+        id: Number(card.querySelector(".btn-agregar")?.dataset.id),
+        nombre: card.dataset.name,
+        precio: parsePrice(card.dataset.price),
+        stock: card.querySelector(".btn-agregar")?.dataset.stock ? Number(card.querySelector(".btn-agregar").dataset.stock) : null,
+        storeId: Number(card.dataset.storeId),
+        storeName: card.dataset.store,
+        whatsapp: card.dataset.whatsapp,
+    };
+    sheet.querySelector("#sheet-image").innerHTML = image
+        ? `<img src="${image.src}" alt="${product.nombre}">`
+        : `<span>${card.querySelector(".product-emoji")?.textContent || "🛍️"}</span>`;
+    sheet.querySelector("#sheet-name").textContent = product.nombre;
+    sheet.querySelector("#sheet-store").textContent = `🏪 ${product.storeName}`;
+    sheet.querySelector("#sheet-description").textContent = card.dataset.description || "Producto seleccionado de SimonStore.";
+    sheet.querySelector("#sheet-price").textContent = money(product.precio);
+    sheet.querySelector("#sheet-old-price").textContent = card.dataset.oldPrice && parsePrice(card.dataset.oldPrice) > product.precio ? money(card.dataset.oldPrice) : "";
+    sheet.querySelector("#sheet-add").onclick = () => { addToCart(product); sheet.classList.remove("is-open"); };
+    sheet.classList.add("is-open");
 };
 
 const parsePrice = (value) => {
@@ -734,6 +798,17 @@ const openWhatsApp = async () => {
 };
 
 document.addEventListener("click", (event) => {
+    const openProduct = event.target.closest("[data-open-product]");
+    if (openProduct && !event.target.closest(".fav, .btn-agregar")) {
+        openProductSheet(openProduct.closest("[data-product-detail]"));
+        return;
+    }
+
+    if (event.target.closest("[data-open-cart]")) {
+        window.openCart();
+        return;
+    }
+
     const addBtn = event.target.closest(".btn-agregar");
     if (addBtn) {
         addToCart({
@@ -756,13 +831,18 @@ document.addEventListener("click", (event) => {
         return;
     }
 
-    if (event.target.id === "cart-fab") {
+    if (event.target.id === "cart-fab" || event.target.id === "cart-header-button" || event.target.id === "mobile-cart-link") {
         toggleMobileCart();
         return;
     }
 
-    if (event.target.id === "cart-close") {
+    if (event.target.id === "cart-close" || event.target.id === "cart-overlay") {
         closeMobileCart();
+        return;
+    }
+
+    if (event.target.closest("[data-close-product]")) {
+        document.getElementById("product-sheet")?.classList.remove("is-open");
         return;
     }
 
@@ -789,4 +869,10 @@ document.addEventListener("click", (event) => {
 document.addEventListener("DOMContentLoaded", () => {
     renderCart();
     initProductImageGalleries();
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            closeMobileCart();
+            document.getElementById("product-sheet")?.classList.remove("is-open");
+        }
+    });
 });
