@@ -876,3 +876,70 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+(function () {
+    var card = document.querySelector(".auth-card");
+    if (!card) return;
+
+    card.querySelectorAll('input[type="password"]').forEach(function (inp) {
+        var wrap = document.createElement("div");
+        wrap.className = "pw-wrap";
+        inp.parentNode.insertBefore(wrap, inp);
+        wrap.appendChild(inp);
+        var eye = document.createElement("button");
+        eye.type = "button";
+        eye.className = "pw-eye";
+        eye.textContent = "👁";
+        eye.setAttribute("aria-label", "Mostrar contraseña");
+        eye.addEventListener("click", function () {
+            var show = inp.type === "password";
+            inp.type = show ? "text" : "password";
+            eye.textContent = show ? "🙈" : "👁";
+            eye.setAttribute("aria-label", show ? "Ocultar contraseña" : "Mostrar contraseña");
+        });
+        wrap.appendChild(eye);
+    });
+
+    var p1 = card.querySelector('input[name="password1"]');
+    var p2 = card.querySelector('input[name="password2"]');
+    if (p1) {
+        var meter = document.createElement("div");
+        meter.className = "pw-meter";
+        meter.innerHTML = "<i></i><span></span>";
+        p1.closest(".pw-wrap").after(meter);
+        var labels = ["", "Débil", "Regular", "Buena", "Fuerte"];
+        p1.addEventListener("input", function () {
+            var v = p1.value, s = 0;
+            if (v.length >= 8) s++;
+            if (/[a-z]/.test(v) && /[A-Z]/.test(v)) s++;
+            if (/\d/.test(v)) s++;
+            if (/[^A-Za-z0-9]/.test(v)) s++;
+            if (!v) s = 0;
+            meter.dataset.l = s;
+            meter.querySelector("span").textContent = labels[s];
+        });
+    }
+    if (p1 && p2) {
+        p2.addEventListener("input", function () {
+            p2.classList.toggle("bad", p2.value !== "" && p2.value !== p1.value);
+        });
+    }
+})();
+
+(function () {
+    document.querySelectorAll('input[type="file"]').forEach(function (inp) {
+        inp.addEventListener("change", function () {
+            var box = inp.closest(".sp-upload-area") || inp.parentNode;
+            var old = box.querySelector(".file-preview");
+            if (old) old.remove();
+            var f = inp.files && inp.files[0];
+            if (!f || f.type.indexOf("image/") !== 0) return;
+            var img = document.createElement("img");
+            img.className = "file-preview";
+            img.alt = "Vista previa";
+            img.src = URL.createObjectURL(f);
+            img.onload = function () { URL.revokeObjectURL(img.src); };
+            box.appendChild(img);
+        });
+    });
+})();

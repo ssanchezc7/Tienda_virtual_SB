@@ -1,24 +1,35 @@
 {% extends 'base.html' %}
 
-{% block title %}Iniciar sesion{% endblock title %}
+{% block title %}Iniciar sesión · SimonStore{% endblock title %}
 
 {% block content %}
-<section class="form-card">
-    <h2>Iniciar sesion</h2>
-    <p class="form-help">Puedes iniciar con tu usuario o con tu correo registrado.</p>
-    <form method="post" class="producto-form">
+<section class="auth">
+    <div class="auth-hero">
+        <div class="auth-logo">🛒</div>
+        <h2>Bienvenido de nuevo</h2>
+        <p>Inicia sesión para ver tus pedidos y favoritos</p>
+    </div>
+
+    <form class="auth-card" method="post" novalidate>
         {% csrf_token %}
+        {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
+        {% if form.non_field_errors %}<div class="auth-alert">⚠ {{ form.non_field_errors|join:" " }}</div>{% endif %}
+
         {% for field in form %}
-        <div class="field-group">
+        <div class="field {% if field.errors %}has-error{% endif %}">
             <label for="{{ field.id_for_label }}">{{ field.label }}</label>
             {{ field }}
-            {% if field.errors %}
-            <small class="error">{{ field.errors|striptags }}</small>
-            {% endif %}
+            {% if field.help_text %}<small class="hint">{{ field.help_text|safe }}</small>{% endif %}
+            {% for e in field.errors %}<small class="err-msg">⚠ {{ e }}</small>{% endfor %}
         </div>
         {% endfor %}
-        <button type="submit" class="btn-whatsapp">Entrar</button>
-        <a class="btn-secundario-link" href="{% url 'usuarios:password_reset' %}">Recuperar contrasena</a>
+
+        <button type="submit" class="auth-submit">Iniciar sesión</button>
+        <a class="auth-switch auth-recovery" href="{% url 'usuarios:password_reset' %}">Recuperar contraseña</a>
     </form>
+
+    <p class="auth-switch">¿Aún no tienes cuenta?
+        <a href="{% url 'usuarios:registro' %}">Crear cuenta gratis</a>
+    </p>
 </section>
 {% endblock content %}
