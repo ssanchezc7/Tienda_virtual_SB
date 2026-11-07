@@ -19,6 +19,7 @@
                 <input type="search" name="tienda" value="{{ busqueda_tienda|default:'' }}" placeholder="Buscar productos o tiendas" aria-label="Buscar productos o tiendas">
                 <button type="submit">Buscar</button>
             </form>
+            <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Activar modo oscuro" title="Activar modo oscuro">🌙</button>
             {% if user.is_authenticated %}
             <a class="header-icon" href="{% url 'usuarios:mi_perfil' %}" aria-label="Mi cuenta"><span>{{ user.username|first|upper }}</span></a>
             {% else %}
@@ -144,10 +145,18 @@
             if (!toggle) return;
             var saved = localStorage.getItem("simonstore-theme");
             if (saved) document.documentElement.dataset.theme = saved;
+            function updateThemeButton() {
+                var dark = document.documentElement.dataset.theme === "dark";
+                toggle.textContent = dark ? "☀️" : "🌙";
+                toggle.setAttribute("aria-label", dark ? "Activar modo claro" : "Activar modo oscuro");
+                toggle.title = dark ? "Activar modo claro" : "Activar modo oscuro";
+            }
+            updateThemeButton();
             toggle.addEventListener("click", function () {
                 var next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
                 document.documentElement.dataset.theme = next;
                 localStorage.setItem("simonstore-theme", next);
+                updateThemeButton();
             });
         })();
         (function () {
